@@ -3,241 +3,340 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Coffeeland — Knowledge Graph</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<title>Coffeeland — Supply Chain Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;600&family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-:root{--bg:#0e0c0a;--bg2:#181410;--bg3:#211d18;--bg4:#2a2520;--border:rgba(255,255,255,.07);--border2:rgba(255,255,255,.12);--text:#f0ebe4;--text2:#a09880;--text3:#6b6050;--accent:#c8975a;--accent2:#e8b87a;--green:#6db88a;--red:#d97060;--blue:#7aabcc;--gold:#d4a853;--r:10px;--fd:'Playfair Display',serif;--fb:'DM Sans',sans-serif;--fm:'DM Mono',monospace}
+:root{
+  --bg:#f7f5f0;--bg2:#ffffff;--bg3:#f0ede6;--bg4:#e8e3da;
+  --border:#e0d9ce;--border2:#cdc5b8;
+  --text:#1a1714;--text2:#5a5248;--text3:#9a9088;
+  --accent:#8B5E3C;--accent2:#C4874F;--accent3:#E8B07A;
+  --green:#2D7D4F;--green2:#E8F5EE;
+  --red:#B94040;--red2:#FBF0F0;
+  --blue:#2B5C8A;--blue2:#EEF4FB;
+  --gold:#9B7B2E;--gold2:#FBF6E8;
+  --r:10px;--r2:16px;
+  --fd:'Lora',serif;--fb:'Inter',sans-serif;--fm:'JetBrains Mono',monospace;
+  --shadow:0 1px 3px rgba(0,0,0,.06),0 4px 12px rgba(0,0,0,.04);
+}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:var(--fb);background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.6}
-.header{padding:1.8rem 2.5rem 1.4rem;border-bottom:1px solid var(--border);display:flex;align-items:flex-end;justify-content:space-between;gap:1rem}
-.header h1{font-family:var(--fd);font-size:26px;font-weight:600;letter-spacing:-.01em}
-.header p{font-size:11px;color:var(--text3);margin-top:3px;font-family:var(--fm);letter-spacing:.04em}
-.badge{display:flex;align-items:center;gap:6px;font-size:11px;font-family:var(--fm);color:var(--text3);padding:5px 10px;border:1px solid var(--border);border-radius:20px}
-.dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green)}
-.nav{display:flex;padding:0 2.5rem;border-bottom:1px solid var(--border);overflow-x:auto;gap:0}
-.tab{padding:.75rem 1.1rem;font-size:12.5px;font-weight:500;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap;letter-spacing:.02em;user-select:none}
-.tab:hover{color:var(--text2)}
-.tab.active{color:var(--accent2);border-bottom-color:var(--accent)}
-.main{padding:2rem 2.5rem;max-width:1400px}
+body{font-family:var(--fb);background:var(--bg);color:var(--text);font-size:14px;line-height:1.6;min-height:100vh}
+.header{background:var(--bg2);border-bottom:1px solid var(--border);padding:1.2rem 2.5rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;position:sticky;top:0;z-index:100;box-shadow:var(--shadow)}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-icon{width:32px;height:32px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;color:#fff}
+.logo-text h1{font-family:var(--fd);font-size:18px;font-weight:600;color:var(--text)}
+.logo-text p{font-size:10.5px;color:var(--text3);letter-spacing:.05em;text-transform:uppercase;font-family:var(--fm)}
+.header-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.stat-pill{background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:4px 12px;font-size:11px;font-family:var(--fm);color:var(--text2)}
+.stat-pill span{color:var(--accent);font-weight:500}
+.ext-link{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:12px;font-family:var(--fb);cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:5px;transition:background .2s}
+.ext-link:hover{background:var(--accent2)}
+.nav{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 2.5rem;display:flex;overflow-x:auto}
+.tab{padding:.7rem 1.1rem;font-size:12.5px;font-weight:500;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap;user-select:none}
+.tab:hover{color:var(--text2)}.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.main{padding:2rem 2.5rem;max-width:1400px;margin:0 auto}
 .sec{display:none}.sec.active{display:block}
-.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:1.8rem}
-.stat{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:.85rem 1rem}
-.sl{font-size:10px;color:var(--text3);letter-spacing:.06em;text-transform:uppercase;margin-bottom:5px;font-family:var(--fm)}
-.sv{font-size:26px;font-weight:300;color:var(--text);font-family:var(--fd);line-height:1}
-.ss{font-size:10.5px;color:var(--text3);margin-top:4px}
-.tw{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:12px}
-.th2{padding:.7rem 1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:1rem}
+.stats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-bottom:1.8rem}
+.stat{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:.85rem 1rem;box-shadow:var(--shadow)}
+.sl{font-size:10px;color:var(--text3);letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px;font-family:var(--fm)}
+.sv{font-size:28px;font-weight:300;color:var(--text);font-family:var(--fd);line-height:1}
+.ss{font-size:10.5px;color:var(--text3);margin-top:3px}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:1.2rem 1.4rem;box-shadow:var(--shadow)}
+.card-title{font-size:11.5px;font-weight:500;color:var(--text2);letter-spacing:.05em;text-transform:uppercase;font-family:var(--fm);margin-bottom:1rem}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+#map{width:100%;height:480px;border-radius:var(--r);overflow:hidden;background:#e8f0f8}
+.map-legend{display:flex;gap:16px;margin-top:10px;flex-wrap:wrap}
+.map-leg-item{display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--text2)}
+.map-leg-dot{width:10px;height:10px;border-radius:50%}
+.chart-wrap{position:relative;height:320px}.chart-wrap-sm{position:relative;height:260px}
+.tw{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;box-shadow:var(--shadow);margin-bottom:14px}
+.th2{padding:.75rem 1.2rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:1rem;background:var(--bg3)}
 .tt{font-size:11.5px;font-weight:500;color:var(--text2);letter-spacing:.04em;font-family:var(--fm)}
-input.search{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:5px 10px;font-size:12px;color:var(--text);font-family:var(--fb);outline:none;width:180px;transition:border-color .2s}
-input.search:focus{border-color:var(--accent)}
-input.search::placeholder{color:var(--text3)}
+input.search{background:var(--bg2);border:1px solid var(--border2);border-radius:6px;padding:5px 10px;font-size:12px;color:var(--text);font-family:var(--fb);outline:none;width:180px;transition:border-color .2s}
+input.search:focus{border-color:var(--accent)}input.search::placeholder{color:var(--text3)}
 table{width:100%;border-collapse:collapse}
-th{text-align:left;padding:.55rem 1rem;font-size:10px;font-weight:500;color:var(--text3);letter-spacing:.06em;text-transform:uppercase;border-bottom:1px solid var(--border);font-family:var(--fm);background:var(--bg3)}
-td{padding:.6rem 1rem;font-size:12.5px;color:var(--text2);border-bottom:1px solid var(--border)}
-tr:last-child td{border-bottom:none}
-tr:hover td{background:var(--bg3);color:var(--text)}
-.bk{display:inline-block;font-size:10px;font-weight:500;padding:2px 7px;border-radius:10px;font-family:var(--fm)}
-.bg{background:rgba(109,184,138,.15);color:#6db88a;border:1px solid rgba(109,184,138,.3)}
-.br{background:rgba(217,112,96,.15);color:#d97060;border:1px solid rgba(217,112,96,.3)}
-.bo{background:rgba(212,168,83,.15);color:#d4a853;border:1px solid rgba(212,168,83,.3)}
-.bb{background:rgba(122,171,204,.15);color:#7aabcc;border:1px solid rgba(122,171,204,.3)}
-.bx{background:rgba(160,152,128,.1);color:#a09880;border:1px solid rgba(160,152,128,.2)}
+th{text-align:left;padding:.55rem 1.2rem;font-size:10px;font-weight:500;color:var(--text3);letter-spacing:.06em;text-transform:uppercase;border-bottom:1px solid var(--border);font-family:var(--fm);background:var(--bg3)}
+td{padding:.65rem 1.2rem;font-size:12.5px;color:var(--text2);border-bottom:1px solid var(--border)}
+tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg3)}
+.bk{display:inline-block;font-size:10px;font-weight:500;padding:2px 7px;border-radius:8px;font-family:var(--fm)}
+.bg{background:var(--green2);color:var(--green);border:1px solid rgba(45,125,79,.2)}
+.br{background:var(--red2);color:var(--red);border:1px solid rgba(185,64,64,.2)}
+.bo{background:var(--gold2);color:var(--gold);border:1px solid rgba(155,123,46,.2)}
+.bb{background:var(--blue2);color:var(--blue);border:1px solid rgba(43,92,138,.2)}
+.bx{background:var(--bg3);color:var(--text2);border:1px solid var(--border)}
 .pb{display:flex;align-items:center;gap:8px}
-.pt{height:4px;border-radius:2px;background:var(--bg4);flex:1;overflow:hidden}
-.pf{height:4px;border-radius:2px;background:var(--accent);transition:width .6s}
-.pn{font-family:var(--fm);font-size:11.5px;color:var(--accent2);min-width:36px;text-align:right}
-.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
-.empty{text-align:center;padding:2rem;color:var(--text3);font-size:12px;font-family:var(--fm)}
-@media(max-width:700px){.header{padding:1.2rem 1rem}.nav{padding:0 1rem}.main{padding:1.2rem 1rem}.stats{grid-template-columns:1fr 1fr}.g2{grid-template-columns:1fr}}
+.pt{height:5px;border-radius:3px;background:var(--bg4);flex:1;overflow:hidden}
+.pf{height:5px;border-radius:3px;background:var(--accent2)}
+.pn{font-family:var(--fm);font-size:11.5px;color:var(--accent);min-width:36px;text-align:right;font-weight:500}
+.brand-selector{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:1rem}
+.brand-btn{background:var(--bg3);border:1px solid var(--border2);border-radius:20px;padding:4px 12px;font-size:11.5px;color:var(--text2);cursor:pointer;transition:all .2s;font-family:var(--fb)}
+.brand-btn:hover{border-color:var(--accent);color:var(--accent)}.brand-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.esg-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:1rem 1.2rem;box-shadow:var(--shadow);margin-bottom:8px}
+.esg-brand-name{font-family:var(--fd);font-size:15px;font-weight:600;color:var(--text);margin-bottom:.3rem}
+.esg-certs{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:.8rem}
+.esg-score-row{display:flex;align-items:center;margin-bottom:5px}
+.esg-score-label{font-size:11.5px;color:var(--text2);width:90px;flex-shrink:0}
+.esg-score-bar{flex:1;height:6px;background:var(--bg4);border-radius:3px;overflow:hidden;margin:0 8px}
+.esg-score-fill{height:6px;border-radius:3px;transition:width .6s}
+.esg-score-num{font-family:var(--fm);font-size:11px;color:var(--text3);width:20px;text-align:right}
+.flow-node{cursor:pointer}
+@media(max-width:900px){.stats{grid-template-columns:repeat(3,1fr)}.g2{grid-template-columns:1fr}}
+@media(max-width:600px){.stats{grid-template-columns:1fr 1fr}.main{padding:1rem}.header{padding:.8rem 1rem}.nav{padding:0 1rem}}
 </style>
 </head>
 <body>
-<div class="header">
-  <div>
-    <h1>Coffeeland</h1>
-    <p>COFFEE SUPPLY CHAIN KNOWLEDGE GRAPH</p>
+<header class="header">
+  <div class="logo">
+    <div class="logo-icon">☕</div>
+    <div class="logo-text">
+      <h1>Coffeeland</h1>
+      <p>Supply Chain Intelligence</p>
+    </div>
   </div>
-  <div class="badge"><span class="dot"></span><span id="triple">3,500 triples</span></div>
-</div>
+  <div class="header-right">
+    <div class="stat-pill">Triples <span id="hTriples">—</span></div>
+    <div class="stat-pill">Farms <span id="hFarms">—</span></div>
+    <div class="stat-pill">Brands <span id="hBrands">—</span></div>
+    <a href="https://3000-icfgad80j2oedk299bhnn-2e1b9533.sandbox.novita.ai/dashboard.html" target="_blank" class="ext-link">온톨로지 탐색 →</a>
+  </div>
+</header>
 <nav class="nav">
-  <div class="tab active" onclick="show('trace',this)">원두 추적</div>
-  <div class="tab" onclick="show('esg',this)">ESG 리스크</div>
-  <div class="tab" onclick="show('brands',this)">브랜드 비교</div>
-  <div class="tab" onclick="show('supply',this)">공급망</div>
+  <div class="tab active" onclick="show('map',this)">🗺 세계 지도</div>
+  <div class="tab" onclick="show('esg',this)">🌿 ESG 분석</div>
+  <div class="tab" onclick="show('brands',this)">☕ 브랜드 비교</div>
+  <div class="tab" onclick="show('flow',this)">🔗 공급망 흐름</div>
+  <div class="tab" onclick="show('trace',this)">🔍 원두 추적</div>
 </nav>
 <div class="main">
+  <div class="stats" id="statsRow"></div>
 
-  <div class="sec active" id="sec-trace">
-    <div class="stats" id="traceStats"></div>
-    <div class="tw">
-      <div class="th2">
-        <span class="tt">메뉴 → 브랜드 → 농장 → 국가 추적</span>
-        <input class="search" placeholder="검색..." oninput="filter('traceT',this.value)">
+  <div class="sec active" id="sec-map">
+    <div class="card">
+      <div class="card-title">커피 생산 농장 & 수출 항구 위치</div>
+      <div id="map"></div>
+      <div class="map-legend">
+        <div class="map-leg-item"><div class="map-leg-dot" style="background:#2D7D4F"></div> 저탄소 농장 (CO₂ ≤ 3.0)</div>
+        <div class="map-leg-item"><div class="map-leg-dot" style="background:#E8A030"></div> 중간 농장</div>
+        <div class="map-leg-item"><div class="map-leg-dot" style="background:#B94040"></div> 고탄소 농장 (CO₂ > 6.0)</div>
+        <div class="map-leg-item"><div class="map-leg-dot" style="background:#2B5C8A;border-radius:2px"></div> 수출 항구</div>
       </div>
-      <div style="overflow-x:auto"><table id="traceT"></table></div>
     </div>
   </div>
 
   <div class="sec" id="sec-esg">
-    <div class="stats" id="esgStats"></div>
+    <div class="g2">
+      <div class="card">
+        <div class="card-title">브랜드 ESG 레이더 차트</div>
+        <div class="brand-selector" id="esgBrandSelector"></div>
+        <div class="chart-wrap"><canvas id="esgRadar"></canvas></div>
+      </div>
+      <div>
+        <div class="card" style="margin-bottom:14px">
+          <div class="card-title">ESG 점수 상세</div>
+          <div id="esgScoreCards"></div>
+        </div>
+        <div class="tw">
+          <div class="th2"><span class="tt">고탄소 공급망 리스크</span></div>
+          <div id="esgHighTable"></div>
+        </div>
+      </div>
+    </div>
     <div class="g2">
       <div class="tw">
-        <div class="th2"><span class="tt">고탄소 공급망 리스크</span></div>
-        <div style="overflow-x:auto"><table id="esgHighT"></table></div>
+        <div class="th2"><span class="tt">Fair Trade + Organic 동시 인증</span></div>
+        <div id="esgGoodTable"></div>
       </div>
-      <div class="tw">
-        <div class="th2"><span class="tt">ESG 우수 브랜드 (Fair Trade + Organic)</span></div>
-        <div style="overflow-x:auto"><table id="esgGoodT"></table></div>
+      <div class="card">
+        <div class="card-title">인증별 브랜드 수</div>
+        <div class="chart-wrap-sm"><canvas id="certChart"></canvas></div>
       </div>
     </div>
   </div>
 
   <div class="sec" id="sec-brands">
+    <div class="card" style="margin-bottom:14px">
+      <div class="card-title">브랜드별 가격 비교 (USD/kg)</div>
+      <div class="chart-wrap"><canvas id="priceChart"></canvas></div>
+    </div>
     <div class="tw">
       <div class="th2">
-        <span class="tt">브랜드 전체 비교 — 가격 · 가공방식 · 등급 · ESG</span>
-        <input class="search" placeholder="검색..." oninput="filter('brandT',this.value)">
+        <span class="tt">브랜드 전체 데이터</span>
+        <input class="search" placeholder="검색..." oninput="filterT('brandTable',this.value)">
       </div>
-      <div style="overflow-x:auto"><table id="brandT"></table></div>
+      <div style="overflow-x:auto"><table id="brandTable"></table></div>
     </div>
   </div>
 
-  <div class="sec" id="sec-supply">
-    <div class="g2">
-      <div class="tw">
-        <div class="th2"><span class="tt">협동조합 → 농장</span></div>
-        <div style="overflow-x:auto"><table id="coopT"></table></div>
-      </div>
-      <div class="tw">
-        <div class="th2"><span class="tt">창고 ↔ 항구 인접</span></div>
-        <div style="overflow-x:auto"><table id="portT"></table></div>
+  <div class="sec" id="sec-flow">
+    <div class="card">
+      <div class="card-title">Farm → Brand → Chain 공급망 흐름도 (노드 클릭 시 상세 정보)</div>
+      <div style="overflow-x:auto"><svg id="flowSvg" height="520"></svg></div>
+      <div id="flowInfo" style="margin-top:10px;padding:.7rem 1rem;background:var(--bg3);border-radius:var(--r);font-size:12.5px;color:var(--text2);min-height:44px">
+        노드를 클릭하면 상세 정보가 표시됩니다.
       </div>
     </div>
+  </div>
+
+  <div class="sec" id="sec-trace">
     <div class="tw">
-      <div class="th2"><span class="tt">브랜드 → 체인 공급</span></div>
-      <div style="overflow-x:auto"><table id="chainT"></table></div>
+      <div class="th2">
+        <span class="tt">메뉴 → 브랜드 → 농장 → 국가 전체 추적 경로</span>
+        <input class="search" placeholder="검색..." oninput="filterT('traceTable',this.value)">
+      </div>
+      <div style="overflow-x:auto"><table id="traceTable"></table></div>
     </div>
   </div>
-
 </div>
+
 <script>
-let D = null;
+let D=null,esgChart=null,selectedBrands=[];
+function show(id,el){document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.getElementById('sec-'+id).classList.add('active');el.classList.add('active')}
+function filterT(id,q){const t=document.getElementById(id);if(!t)return;t.querySelectorAll('tbody tr').forEach(r=>{r.style.display=r.textContent.toLowerCase().includes(q.toLowerCase())?'':'none'})}
+function bk(t,c){return t?`<span class="bk ${c}">${t}</span>`:'—'}
 
-function show(id, el) {
-  document.querySelectorAll('.sec').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.getElementById('sec-' + id).classList.add('active');
-  el.classList.add('active');
-}
-
-function filter(id, q) {
-  const tbl = document.getElementById(id);
-  if (!tbl) return;
-  const lq = q.toLowerCase();
-  tbl.querySelectorAll('tbody tr').forEach(r => {
-    r.style.display = r.textContent.toLowerCase().includes(lq) ? '' : 'none';
-  });
-}
-
-function mkTh(cols) {
-  return '<thead><tr>' + cols.map(c => `<th>${c}</th>`).join('') + '</tr></thead>';
-}
-
-function bk(txt, cls) {
-  if (!txt) return '—';
-  return `<span class="bk ${cls}">${txt}</span>`;
-}
-
-function segClass(s) {
-  return s === 'PP_Luxury' ? 'bo' : s === 'PP_Specialty' ? 'bb' : 'bx';
-}
-
-function esgClass(e) {
-  return e === 'Metric_CO2_Low' ? 'bg' : e === 'Metric_CO2_High' ? 'br' : '';
-}
-
-function renderTrace(data) {
-  const s = data.stats;
-  document.getElementById('traceStats').innerHTML = `
+function renderStats(s){
+  document.getElementById('statsRow').innerHTML=`
     <div class="stat"><div class="sl">메뉴</div><div class="sv">${s.menus}</div><div class="ss">BeverageMenu</div></div>
     <div class="stat"><div class="sl">브랜드</div><div class="sv">${s.brands}</div><div class="ss">CoffeeBrand</div></div>
-    <div class="stat"><div class="sl">농장</div><div class="sv">${s.farms}</div><div class="ss">Farm</div></div>
-    <div class="stat"><div class="sl">생산국</div><div class="sv">${s.countries}</div><div class="ss">Country</div></div>`;
-  const rows = data.trace.map(r =>
-    `<tr><td style="font-weight:500;color:var(--text)">${r.menu}</td><td>${r.brand}</td><td>${r.farm}</td><td>${r.country}</td></tr>`
-  ).join('');
-  document.getElementById('traceT').innerHTML = mkTh(['메뉴','브랜드','농장','국가']) + '<tbody>' + rows + '</tbody>';
+    <div class="stat"><div class="sl">농장</div><div class="sv">${s.farms}</div><div class="ss">생산 농장</div></div>
+    <div class="stat"><div class="sl">체인</div><div class="sv">${s.chains}</div><div class="ss">CoffeeChain</div></div>
+    <div class="stat"><div class="sl">항구</div><div class="sv">${s.ports}</div><div class="ss">수출 항구</div></div>`;
+  document.getElementById('hTriples').textContent=s.triples.toLocaleString();
+  document.getElementById('hFarms').textContent=s.farms;
+  document.getElementById('hBrands').textContent=s.brands;
 }
 
-function renderESG(data) {
-  const s = data.stats;
-  document.getElementById('esgStats').innerHTML = `
-    <div class="stat"><div class="sl">고탄소 농장</div><div class="sv" style="color:var(--red)">${s.high_co2_farms}</div><div class="ss">CO₂ > 6.0 kg/kg</div></div>
-    <div class="stat"><div class="sl">Fair Trade 브랜드</div><div class="sv" style="color:var(--gold)">${s.fairtrade_brands}</div><div class="ss">인증 브랜드</div></div>
-    <div class="stat"><div class="sl">Organic 브랜드</div><div class="sv" style="color:var(--blue)">${s.organic_brands}</div><div class="ss">인증 브랜드</div></div>
-    <div class="stat"><div class="sl">체인 수</div><div class="sv">${s.chains}</div><div class="ss">CoffeeChain</div></div>`;
-
-  const highRows = data.esg_high.map(r =>
-    `<tr><td>${r.farm}</td><td>${r.brand}</td><td>${bk(r.chain,'br')}</td><td style="font-family:var(--fm);color:var(--red)">${r.co2}</td></tr>`
-  ).join('') || '<tr><td colspan="4" style="text-align:center;color:var(--text3)">데이터 없음</td></tr>';
-  document.getElementById('esgHighT').innerHTML = mkTh(['농장','브랜드','체인','CO₂']) + '<tbody>' + highRows + '</tbody>';
-
-  const goodRows = data.esg_good.map(r =>
-    `<tr><td style="font-weight:500;color:var(--text)">${r.name}</td><td>${bk('Fair Trade','bg')} ${bk('Organic','bb')}</td></tr>`
-  ).join('') || '<tr><td colspan="2" style="text-align:center;color:var(--text3)">데이터 없음</td></tr>';
-  document.getElementById('esgGoodT').innerHTML = mkTh(['브랜드','인증']) + '<tbody>' + goodRows + '</tbody>';
+function renderMap(farms,ports){
+  const lnk=document.createElement('link');lnk.rel='stylesheet';lnk.href='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css';document.head.appendChild(lnk);
+  const sc=document.createElement('script');sc.src='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';
+  sc.onload=()=>{
+    const map=L.map('map',{center:[15,20],zoom:2});
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{attribution:'© OpenStreetMap © CARTO',maxZoom:18}).addTo(map);
+    farms.forEach(f=>{
+      const color=f.esg==='low'?'#2D7D4F':f.esg==='high'?'#B94040':'#E8A030';
+      L.circleMarker([f.lat,f.lng],{radius:8,fillColor:color,color:'#fff',weight:1.5,opacity:1,fillOpacity:.85}).addTo(map)
+        .bindPopup(`<b>${f.name}</b><br>${f.country}<br>CO₂: ${f.co2} kg/kg<br>브랜드: ${f.brands.join(', ')}`);
+    });
+    ports.forEach(p=>{
+      L.marker([p.lat,p.lng],{icon:L.divIcon({className:'',html:`<div style="width:10px;height:10px;background:#2B5C8A;border:2px solid #fff;border-radius:2px;box-shadow:0 1px 3px rgba(0,0,0,.3)"></div>`,iconSize:[10,10],iconAnchor:[5,5]})}).addTo(map).bindPopup(`<b>항구: ${p.label}</b>`);
+    });
+  };
+  document.head.appendChild(sc);
 }
 
-function renderBrands(data) {
-  const max = Math.max(...data.brands.map(b => b.price));
-  const rows = data.brands.map(b => {
-    const pct = max ? Math.round(b.price / max * 100) : 0;
-    const seg = b.segment;
-    const esg = b.esg;
-    return `<tr>
-      <td style="font-weight:500;color:var(--text)">${b.name}</td>
-      <td><div class="pb"><div class="pt"><div class="pf" style="width:${pct}%"></div></div><span class="pn">$${b.price.toFixed(2)}</span></div></td>
-      <td>${b.method ? bk(b.method,'bx') : '—'}</td>
-      <td>${seg ? bk(seg, segClass(seg)) : '—'}</td>
-      <td>${esg ? bk(esg, esgClass(esg)) : '—'}</td>
-      <td style="font-size:11px;color:var(--text3)">${(b.farms||[]).map(f=>f.replace('Farm_','')).join(', ') || '—'}</td>
-    </tr>`;
-  }).join('');
-  document.getElementById('brandT').innerHTML =
-    mkTh(['브랜드','가격 (USD/kg)','가공방식','가격등급','ESG','공급 농장']) + '<tbody>' + rows + '</tbody>';
-}
-
-function renderSupply(data) {
-  const coopRows = data.supply_coop.map(r =>
-    `<tr><td>${r.coop}</td><td style="color:var(--text3);font-size:12px">${r.farm}</td></tr>`
-  ).join('');
-  document.getElementById('coopT').innerHTML = mkTh(['협동조합','농장']) + '<tbody>' + coopRows + '</tbody>';
-
-  const portRows = data.supply_port.map(r =>
-    `<tr><td>${r.warehouse}</td><td>${r.port}</td></tr>`
-  ).join('');
-  document.getElementById('portT').innerHTML = mkTh(['창고','항구']) + '<tbody>' + portRows + '</tbody>';
-
-  const chainRows = data.supply_chain.map(r =>
-    `<tr><td style="font-weight:500;color:var(--text)">${r.brand}</td><td>${r.chain}</td></tr>`
-  ).join('');
-  document.getElementById('chainT').innerHTML = mkTh(['브랜드','체인']) + '<tbody>' + chainRows + '</tbody>';
-}
-
-fetch('coffeeland_data.json')
-  .then(r => r.json())
-  .then(data => {
-    D = data;
-    document.getElementById('triple').textContent = data.stats.triples.toLocaleString() + ' triples';
-    renderTrace(data);
-    renderESG(data);
-    renderBrands(data);
-    renderSupply(data);
-  })
-  .catch(() => {
-    document.querySelector('.main').innerHTML =
-      '<div style="text-align:center;padding:3rem;color:var(--text3);font-family:var(--fm)">coffeeland_data.json 파일을 같은 폴더에 넣어주세요</div>';
+function renderESG(brands){
+  const sel=document.getElementById('esgBrandSelector');
+  const top=brands.filter(b=>b.price>0).slice(0,8);
+  selectedBrands=top.slice(0,3).map(b=>b.id);
+  top.forEach(b=>{
+    const btn=document.createElement('button');
+    btn.className='brand-btn'+(selectedBrands.includes(b.id)?' active':'');
+    btn.textContent=b.name;
+    btn.onclick=()=>{
+      if(selectedBrands.includes(b.id)){if(selectedBrands.length>1){selectedBrands=selectedBrands.filter(x=>x!==b.id);btn.classList.remove('active')}}
+      else if(selectedBrands.length<4){selectedBrands.push(b.id);btn.classList.add('active')}
+      updateRadar(brands);
+    };
+    sel.appendChild(btn);
   });
+  const ctx=document.getElementById('esgRadar').getContext('2d');
+  esgChart=new Chart(ctx,{type:'radar',data:{labels:['CO₂ 저감','공정무역','유기농','레인포레스트','수자원'],datasets:[]},options:{responsive:true,maintainAspectRatio:false,scales:{r:{min:0,max:10,ticks:{stepSize:2,font:{size:10},color:'#9a9088'},grid:{color:'#e0d9ce'},pointLabels:{font:{size:11},color:'#5a5248'}}},plugins:{legend:{position:'bottom',labels:{font:{size:11},color:'#5a5248',boxWidth:12}}}}});
+  updateRadar(brands);
+
+  const highRows=D.esg_high.map(r=>`<tr><td>${r.farm}</td><td>${r.brand}</td><td>${bk(r.chain,'br')}</td><td style="font-family:var(--fm);color:var(--red)">${r.co2}</td></tr>`).join('')||`<tr><td colspan="4" style="text-align:center;color:var(--text3);padding:1.5rem">없음</td></tr>`;
+  document.getElementById('esgHighTable').innerHTML=`<table><thead><tr><th>농장</th><th>브랜드</th><th>체인</th><th>CO₂</th></tr></thead><tbody>${highRows}</tbody></table>`;
+
+  const goodRows=D.esg_good.map(r=>`<tr><td style="font-weight:500;color:var(--text)">${r.name}</td><td>${bk('Fair Trade','bg')} ${bk('Organic','bb')}</td></tr>`).join('');
+  document.getElementById('esgGoodTable').innerHTML=`<table><thead><tr><th>브랜드</th><th>인증</th></tr></thead><tbody>${goodRows}</tbody></table>`;
+
+  const cc={};brands.forEach(b=>b.certs.forEach(c=>{cc[c]=(cc[c]||0)+1}));
+  new Chart(document.getElementById('certChart').getContext('2d'),{type:'doughnut',data:{labels:Object.keys(cc).map(c=>c.replace(/_/g,' ')),datasets:[{data:Object.values(cc),backgroundColor:['#2D7D4F','#2B5C8A','#9B7B2E','#8B5E3C'],borderColor:'#fff',borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11},color:'#5a5248',boxWidth:12,padding:8}}}}});
+}
+
+function updateRadar(brands){
+  const COLORS=['#8B5E3C','#2D7D4F','#2B5C8A','#9B7B2E'];
+  esgChart.data.datasets=selectedBrands.map((id,i)=>{
+    const b=brands.find(x=>x.id===id);if(!b)return null;
+    return{label:b.name,data:[b.esg.co2,b.esg.fairTrade,b.esg.organic,b.esg.rainforest,b.esg.water],borderColor:COLORS[i],backgroundColor:COLORS[i]+'22',borderWidth:2,pointRadius:3};
+  }).filter(Boolean);
+  esgChart.update();
+  const labels=['CO₂ 저감','공정무역','유기농','레인포레스트','수자원'];
+  const keys=['co2','fairTrade','organic','rainforest','water'];
+  const fills=['#2D7D4F','#8B5E3C','#6B9E4A','#1A7A4A','#2B5C8A'];
+  document.getElementById('esgScoreCards').innerHTML=selectedBrands.map((id,i)=>{
+    const b=brands.find(x=>x.id===id);if(!b)return'';
+    const ch=b.certs.map(c=>`<span class="bk bg" style="font-size:9.5px">${c.replace(/_/g,' ')}</span>`).join(' ');
+    const rows=keys.map((k,j)=>`<div class="esg-score-row"><span class="esg-score-label">${labels[j]}</span><div class="esg-score-bar"><div class="esg-score-fill" style="width:${b.esg[k]*10}%;background:${fills[j]}"></div></div><span class="esg-score-num">${b.esg[k]}</span></div>`).join('');
+    return`<div class="esg-card" style="border-left:3px solid ${COLORS[i]}"><div class="esg-brand-name">${b.name}</div><div class="esg-certs">${ch||'<span style="font-size:11px;color:var(--text3)">인증 없음</span>'}</div>${rows}</div>`;
+  }).join('');
+}
+
+function renderBrands(brands){
+  const sorted=[...brands].filter(b=>b.price>0).sort((a,b)=>b.price-a.price);
+  const bg=sorted.map(b=>b.esg.co2>=8?'#2D7D4F':b.esg.co2<=3?'#B94040':'#C4874F');
+  new Chart(document.getElementById('priceChart').getContext('2d'),{type:'bar',data:{labels:sorted.map(b=>b.name),datasets:[{label:'USD/kg',data:sorted.map(b=>b.price),backgroundColor:bg,borderRadius:6,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',scales:{x:{grid:{color:'#e0d9ce'},ticks:{color:'#9a9088',font:{size:11}},title:{display:true,text:'USD/kg',font:{size:11},color:'#9a9088'}},y:{grid:{display:false},ticks:{color:'#5a5248',font:{size:12}}}},plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` $${c.parsed.x.toFixed(2)}/kg`}}}}});
+  const max=Math.max(...sorted.map(b=>b.price));
+  const rows=sorted.map(b=>{
+    const pct=max?Math.round(b.price/max*100):0;
+    const sc=b.segment==='Luxury'?'bo':b.segment==='Specialty'?'bb':'bx';
+    const ec=b.esg.co2>=8?'bg':b.esg.co2<=3?'br':'bx';
+    const el=b.esg.co2>=8?'CO₂ 저감':b.esg.co2<=3?'고위험':'보통';
+    return`<tr><td style="font-weight:500;color:var(--text)">${b.name}</td><td><div class="pb"><div class="pt"><div class="pf" style="width:${pct}%"></div></div><span class="pn">$${b.price.toFixed(2)}</span></div></td><td>${bk(b.method,'bx')}</td><td>${b.segment!=='—'?bk(b.segment,sc):'—'}</td><td>${bk(el,ec)}</td><td style="font-size:11px;color:var(--text3)">${b.farms.join(', ')||'—'}</td></tr>`;
+  }).join('');
+  document.getElementById('brandTable').innerHTML=`<thead><tr><th>브랜드</th><th>가격(USD/kg)</th><th>가공방식</th><th>등급</th><th>ESG</th><th>농장</th></tr></thead><tbody>${rows}</tbody>`;
+}
+
+function renderFlow(nodes,links){
+  const svg=document.getElementById('flowSvg');
+  const W=Math.max(svg.parentElement.clientWidth||900,700),H=520;
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.setAttribute('width',W);
+  const farms=nodes.filter(n=>n.type==='farm'),brands=nodes.filter(n=>n.type==='brand'),chains=nodes.filter(n=>n.type==='chain');
+  const COL={farm:W*.12,brand:W*.5,chain:W*.88};
+  const COLORS={farm:'#2D7D4F',brand:'#8B5E3C',chain:'#2B5C8A'};
+  const BG={farm:'#E8F5EE',brand:'#FBF6E8',chain:'#EEF4FB'};
+  const pos={};
+  const place=(arr,x)=>arr.forEach((n,i)=>{pos[n.id]={x,y:40+i*(H-60)/Math.max(arr.length-1,1)}});
+  place(farms,COL.farm);place(brands,COL.brand);place(chains,COL.chain);
+  let html='';
+  links.forEach(l=>{const s=pos[l.source],t=pos[l.target];if(!s||!t)return;const mx=(s.x+t.x)/2;html+=`<path d="M${s.x+60},${s.y} C${mx},${s.y} ${mx},${t.y} ${t.x-60},${t.y}" fill="none" stroke="${l.type==='produces'?'#C4874F':'#7AABC8'}" stroke-width="1.2" stroke-opacity=".4"/>`;});
+  nodes.forEach(n=>{
+    const p=pos[n.id];if(!p)return;
+    const c=COLORS[n.type],bg=BG[n.type];
+    const lbl=n.label.length>16?n.label.slice(0,15)+'…':n.label;
+    const ex=n.type==='farm'?`CO₂: ${n.co2}`:n.type==='brand'?`$${n.price?.toFixed(2)||'—'}`:'';
+    const nd=JSON.stringify(n).replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+    html+=`<g class="flow-node" onclick='showFlowInfo(${nd})'><rect x="${p.x-58}" y="${p.y-16}" width="116" height="32" rx="8" fill="${bg}" stroke="${c}" stroke-width="1.2"/><text x="${p.x}" y="${p.y-3}" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="500" fill="${c}">${lbl}</text>${ex?`<text x="${p.x}" y="${p.y+10}" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9.5" fill="${c}88">${ex}</text>`:''}</g>`;
+  });
+  [['농장 (Farm)',COL.farm],['브랜드 (Brand)',COL.brand],['체인 (Chain)',COL.chain]].forEach(([t,x])=>{
+    html+=`<text x="${x}" y="20" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10.5" fill="#9a9088">${t}</text>`;
+  });
+  svg.innerHTML=html;
+}
+
+function showFlowInfo(n){
+  const info=document.getElementById('flowInfo');
+  if(n.type==='farm'){info.innerHTML=`농장: <strong>${n.label}</strong> | CO₂: ${n.co2} kg/kg | ${n.co2<=3?'✅ 저탄소':n.co2>6?'⚠️ 고탄소':'보통'}`;}
+  else if(n.type==='brand'){const b=D.brands.find(x=>x.id===n.id.replace('brand_',''));info.innerHTML=b?`브랜드: <strong>${b.name}</strong> | $${b.price.toFixed(2)}/kg | ${b.method} | 인증: ${b.certs.join(', ')||'없음'}`:n.label;}
+  else{info.innerHTML=`커피 체인: <strong>${n.label}</strong>`;}
+}
+
+function renderTrace(trace){
+  const rows=trace.map(r=>`<tr><td style="font-weight:500">${r.menu}</td><td>${r.brand}</td><td>${r.farm.replace('Farm_','').replace(/_/g,' ')}</td><td>${r.country}</td></tr>`).join('');
+  document.getElementById('traceTable').innerHTML=`<thead><tr><th>메뉴</th><th>브랜드</th><th>농장</th><th>국가</th></tr></thead><tbody>${rows}</tbody>`;
+}
+
+fetch('coffeeland_data.json').then(r=>r.json()).then(data=>{
+  D=data;
+  renderStats(data.stats);
+  renderMap(data.farm_map,data.port_map);
+  renderESG(data.brands);
+  renderBrands(data.brands);
+  renderFlow(data.flow_nodes,data.flow_links);
+  renderTrace(data.trace);
+}).catch(e=>{
+  document.querySelector('.main').innerHTML=`<div style="text-align:center;padding:3rem;color:var(--text3)">coffeeland_data.json 파일을 같은 폴더에 넣어주세요<br><small>${e.message}</small></div>`;
+});
 </script>
 </body>
 </html>
