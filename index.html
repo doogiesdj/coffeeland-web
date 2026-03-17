@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coffeeland — Knowledge Graph</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0e0c0a;--bg2:#181410;--bg3:#211d18;--bg4:#2a2520;--border:rgba(255,255,255,.07);--border2:rgba(255,255,255,.12);--text:#f0ebe4;--text2:#a09880;--text3:#6b6050;--accent:#c8975a;--accent2:#e8b87a;--green:#6db88a;--red:#d97060;--blue:#7aabcc;--gold:#d4a853;--r:10px;--fd:'Playfair Display',serif;--fb:'DM Sans',sans-serif;--fm:'DM Mono',monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--fb);background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.6}
+.header{padding:1.8rem 2.5rem 1.4rem;border-bottom:1px solid var(--border);display:flex;align-items:flex-end;justify-content:space-between;gap:1rem}
+.header h1{font-family:var(--fd);font-size:26px;font-weight:600;letter-spacing:-.01em}
+.header p{font-size:11px;color:var(--text3);margin-top:3px;font-family:var(--fm);letter-spacing:.04em}
+.badge{display:flex;align-items:center;gap:6px;font-size:11px;font-family:var(--fm);color:var(--text3);padding:5px 10px;border:1px solid var(--border);border-radius:20px}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green)}
+.nav{display:flex;padding:0 2.5rem;border-bottom:1px solid var(--border);overflow-x:auto;gap:0}
+.tab{padding:.75rem 1.1rem;font-size:12.5px;font-weight:500;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap;letter-spacing:.02em;user-select:none}
+.tab:hover{color:var(--text2)}
+.tab.active{color:var(--accent2);border-bottom-color:var(--accent)}
+.main{padding:2rem 2.5rem;max-width:1400px}
+.sec{display:none}.sec.active{display:block}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:1.8rem}
+.stat{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:.85rem 1rem}
+.sl{font-size:10px;color:var(--text3);letter-spacing:.06em;text-transform:uppercase;margin-bottom:5px;font-family:var(--fm)}
+.sv{font-size:26px;font-weight:300;color:var(--text);font-family:var(--fd);line-height:1}
+.ss{font-size:10.5px;color:var(--text3);margin-top:4px}
+.tw{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:12px}
+.th2{padding:.7rem 1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:1rem}
+.tt{font-size:11.5px;font-weight:500;color:var(--text2);letter-spacing:.04em;font-family:var(--fm)}
+input.search{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:5px 10px;font-size:12px;color:var(--text);font-family:var(--fb);outline:none;width:180px;transition:border-color .2s}
+input.search:focus{border-color:var(--accent)}
+input.search::placeholder{color:var(--text3)}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;padding:.55rem 1rem;font-size:10px;font-weight:500;color:var(--text3);letter-spacing:.06em;text-transform:uppercase;border-bottom:1px solid var(--border);font-family:var(--fm);background:var(--bg3)}
+td{padding:.6rem 1rem;font-size:12.5px;color:var(--text2);border-bottom:1px solid var(--border)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg3);color:var(--text)}
+.bk{display:inline-block;font-size:10px;font-weight:500;padding:2px 7px;border-radius:10px;font-family:var(--fm)}
+.bg{background:rgba(109,184,138,.15);color:#6db88a;border:1px solid rgba(109,184,138,.3)}
+.br{background:rgba(217,112,96,.15);color:#d97060;border:1px solid rgba(217,112,96,.3)}
+.bo{background:rgba(212,168,83,.15);color:#d4a853;border:1px solid rgba(212,168,83,.3)}
+.bb{background:rgba(122,171,204,.15);color:#7aabcc;border:1px solid rgba(122,171,204,.3)}
+.bx{background:rgba(160,152,128,.1);color:#a09880;border:1px solid rgba(160,152,128,.2)}
+.pb{display:flex;align-items:center;gap:8px}
+.pt{height:4px;border-radius:2px;background:var(--bg4);flex:1;overflow:hidden}
+.pf{height:4px;border-radius:2px;background:var(--accent);transition:width .6s}
+.pn{font-family:var(--fm);font-size:11.5px;color:var(--accent2);min-width:36px;text-align:right}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.empty{text-align:center;padding:2rem;color:var(--text3);font-size:12px;font-family:var(--fm)}
+@media(max-width:700px){.header{padding:1.2rem 1rem}.nav{padding:0 1rem}.main{padding:1.2rem 1rem}.stats{grid-template-columns:1fr 1fr}.g2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="header">
+  <div>
+    <h1>Coffeeland</h1>
+    <p>COFFEE SUPPLY CHAIN KNOWLEDGE GRAPH</p>
+  </div>
+  <div class="badge"><span class="dot"></span><span id="triple">3,500 triples</span></div>
+</div>
+<nav class="nav">
+  <div class="tab active" onclick="show('trace',this)">원두 추적</div>
+  <div class="tab" onclick="show('esg',this)">ESG 리스크</div>
+  <div class="tab" onclick="show('brands',this)">브랜드 비교</div>
+  <div class="tab" onclick="show('supply',this)">공급망</div>
+</nav>
+<div class="main">
+
+  <div class="sec active" id="sec-trace">
+    <div class="stats" id="traceStats"></div>
+    <div class="tw">
+      <div class="th2">
+        <span class="tt">메뉴 → 브랜드 → 농장 → 국가 추적</span>
+        <input class="search" placeholder="검색..." oninput="filter('traceT',this.value)">
+      </div>
+      <div style="overflow-x:auto"><table id="traceT"></table></div>
+    </div>
+  </div>
+
+  <div class="sec" id="sec-esg">
+    <div class="stats" id="esgStats"></div>
+    <div class="g2">
+      <div class="tw">
+        <div class="th2"><span class="tt">고탄소 공급망 리스크</span></div>
+        <div style="overflow-x:auto"><table id="esgHighT"></table></div>
+      </div>
+      <div class="tw">
+        <div class="th2"><span class="tt">ESG 우수 브랜드 (Fair Trade + Organic)</span></div>
+        <div style="overflow-x:auto"><table id="esgGoodT"></table></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec" id="sec-brands">
+    <div class="tw">
+      <div class="th2">
+        <span class="tt">브랜드 전체 비교 — 가격 · 가공방식 · 등급 · ESG</span>
+        <input class="search" placeholder="검색..." oninput="filter('brandT',this.value)">
+      </div>
+      <div style="overflow-x:auto"><table id="brandT"></table></div>
+    </div>
+  </div>
+
+  <div class="sec" id="sec-supply">
+    <div class="g2">
+      <div class="tw">
+        <div class="th2"><span class="tt">협동조합 → 농장</span></div>
+        <div style="overflow-x:auto"><table id="coopT"></table></div>
+      </div>
+      <div class="tw">
+        <div class="th2"><span class="tt">창고 ↔ 항구 인접</span></div>
+        <div style="overflow-x:auto"><table id="portT"></table></div>
+      </div>
+    </div>
+    <div class="tw">
+      <div class="th2"><span class="tt">브랜드 → 체인 공급</span></div>
+      <div style="overflow-x:auto"><table id="chainT"></table></div>
+    </div>
+  </div>
+
+</div>
+<script>
+let D = null;
+
+function show(id, el) {
+  document.querySelectorAll('.sec').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('sec-' + id).classList.add('active');
+  el.classList.add('active');
+}
+
+function filter(id, q) {
+  const tbl = document.getElementById(id);
+  if (!tbl) return;
+  const lq = q.toLowerCase();
+  tbl.querySelectorAll('tbody tr').forEach(r => {
+    r.style.display = r.textContent.toLowerCase().includes(lq) ? '' : 'none';
+  });
+}
+
+function mkTh(cols) {
+  return '<thead><tr>' + cols.map(c => `<th>${c}</th>`).join('') + '</tr></thead>';
+}
+
+function bk(txt, cls) {
+  if (!txt) return '—';
+  return `<span class="bk ${cls}">${txt}</span>`;
+}
+
+function segClass(s) {
+  return s === 'PP_Luxury' ? 'bo' : s === 'PP_Specialty' ? 'bb' : 'bx';
+}
+
+function esgClass(e) {
+  return e === 'Metric_CO2_Low' ? 'bg' : e === 'Metric_CO2_High' ? 'br' : '';
+}
+
+function renderTrace(data) {
+  const s = data.stats;
+  document.getElementById('traceStats').innerHTML = `
+    <div class="stat"><div class="sl">메뉴</div><div class="sv">${s.menus}</div><div class="ss">BeverageMenu</div></div>
+    <div class="stat"><div class="sl">브랜드</div><div class="sv">${s.brands}</div><div class="ss">CoffeeBrand</div></div>
+    <div class="stat"><div class="sl">농장</div><div class="sv">${s.farms}</div><div class="ss">Farm</div></div>
+    <div class="stat"><div class="sl">생산국</div><div class="sv">${s.countries}</div><div class="ss">Country</div></div>`;
+  const rows = data.trace.map(r =>
+    `<tr><td style="font-weight:500;color:var(--text)">${r.menu}</td><td>${r.brand}</td><td>${r.farm}</td><td>${r.country}</td></tr>`
+  ).join('');
+  document.getElementById('traceT').innerHTML = mkTh(['메뉴','브랜드','농장','국가']) + '<tbody>' + rows + '</tbody>';
+}
+
+function renderESG(data) {
+  const s = data.stats;
+  document.getElementById('esgStats').innerHTML = `
+    <div class="stat"><div class="sl">고탄소 농장</div><div class="sv" style="color:var(--red)">${s.high_co2_farms}</div><div class="ss">CO₂ > 6.0 kg/kg</div></div>
+    <div class="stat"><div class="sl">Fair Trade 브랜드</div><div class="sv" style="color:var(--gold)">${s.fairtrade_brands}</div><div class="ss">인증 브랜드</div></div>
+    <div class="stat"><div class="sl">Organic 브랜드</div><div class="sv" style="color:var(--blue)">${s.organic_brands}</div><div class="ss">인증 브랜드</div></div>
+    <div class="stat"><div class="sl">체인 수</div><div class="sv">${s.chains}</div><div class="ss">CoffeeChain</div></div>`;
+
+  const highRows = data.esg_high.map(r =>
+    `<tr><td>${r.farm}</td><td>${r.brand}</td><td>${bk(r.chain,'br')}</td><td style="font-family:var(--fm);color:var(--red)">${r.co2}</td></tr>`
+  ).join('') || '<tr><td colspan="4" style="text-align:center;color:var(--text3)">데이터 없음</td></tr>';
+  document.getElementById('esgHighT').innerHTML = mkTh(['농장','브랜드','체인','CO₂']) + '<tbody>' + highRows + '</tbody>';
+
+  const goodRows = data.esg_good.map(r =>
+    `<tr><td style="font-weight:500;color:var(--text)">${r.name}</td><td>${bk('Fair Trade','bg')} ${bk('Organic','bb')}</td></tr>`
+  ).join('') || '<tr><td colspan="2" style="text-align:center;color:var(--text3)">데이터 없음</td></tr>';
+  document.getElementById('esgGoodT').innerHTML = mkTh(['브랜드','인증']) + '<tbody>' + goodRows + '</tbody>';
+}
+
+function renderBrands(data) {
+  const max = Math.max(...data.brands.map(b => b.price));
+  const rows = data.brands.map(b => {
+    const pct = max ? Math.round(b.price / max * 100) : 0;
+    const seg = b.segment;
+    const esg = b.esg;
+    return `<tr>
+      <td style="font-weight:500;color:var(--text)">${b.name}</td>
+      <td><div class="pb"><div class="pt"><div class="pf" style="width:${pct}%"></div></div><span class="pn">$${b.price.toFixed(2)}</span></div></td>
+      <td>${b.method ? bk(b.method,'bx') : '—'}</td>
+      <td>${seg ? bk(seg, segClass(seg)) : '—'}</td>
+      <td>${esg ? bk(esg, esgClass(esg)) : '—'}</td>
+      <td style="font-size:11px;color:var(--text3)">${(b.farms||[]).map(f=>f.replace('Farm_','')).join(', ') || '—'}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('brandT').innerHTML =
+    mkTh(['브랜드','가격 (USD/kg)','가공방식','가격등급','ESG','공급 농장']) + '<tbody>' + rows + '</tbody>';
+}
+
+function renderSupply(data) {
+  const coopRows = data.supply_coop.map(r =>
+    `<tr><td>${r.coop}</td><td style="color:var(--text3);font-size:12px">${r.farm}</td></tr>`
+  ).join('');
+  document.getElementById('coopT').innerHTML = mkTh(['협동조합','농장']) + '<tbody>' + coopRows + '</tbody>';
+
+  const portRows = data.supply_port.map(r =>
+    `<tr><td>${r.warehouse}</td><td>${r.port}</td></tr>`
+  ).join('');
+  document.getElementById('portT').innerHTML = mkTh(['창고','항구']) + '<tbody>' + portRows + '</tbody>';
+
+  const chainRows = data.supply_chain.map(r =>
+    `<tr><td style="font-weight:500;color:var(--text)">${r.brand}</td><td>${r.chain}</td></tr>`
+  ).join('');
+  document.getElementById('chainT').innerHTML = mkTh(['브랜드','체인']) + '<tbody>' + chainRows + '</tbody>';
+}
+
+fetch('coffeeland_data.json')
+  .then(r => r.json())
+  .then(data => {
+    D = data;
+    document.getElementById('triple').textContent = data.stats.triples.toLocaleString() + ' triples';
+    renderTrace(data);
+    renderESG(data);
+    renderBrands(data);
+    renderSupply(data);
+  })
+  .catch(() => {
+    document.querySelector('.main').innerHTML =
+      '<div style="text-align:center;padding:3rem;color:var(--text3);font-family:var(--fm)">coffeeland_data.json 파일을 같은 폴더에 넣어주세요</div>';
+  });
+</script>
+</body>
+</html>
