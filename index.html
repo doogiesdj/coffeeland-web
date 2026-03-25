@@ -83,6 +83,35 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg3);color:var(
 .flow-node{cursor:pointer}
 @media(max-width:900px){.stats{grid-template-columns:repeat(3,1fr)}.g2{grid-template-columns:1fr}}
 @media(max-width:600px){.stats{grid-template-columns:1fr 1fr}.main{padding:1rem}.header{padding:.8rem 1rem}.nav{padding:0 1rem}}
+
+/* ── SPARQL / NL Query ── */
+.nl-wrap{display:flex;gap:10px;margin-bottom:12px}
+.nl-input{flex:1;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:10px 14px;font-size:13.5px;color:var(--text);font-family:var(--fb);outline:none;transition:border-color .2s}
+.nl-input:focus{border-color:var(--accent)}
+.nl-input::placeholder{color:var(--text3)}
+.query-btn{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:500;cursor:pointer;transition:background .2s;white-space:nowrap;font-family:var(--fb)}
+.query-btn:hover{background:var(--accent2)}
+.ex-chips{display:flex;flex-wrap:wrap;gap:6px}
+.ex-chip{background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:3px 10px;font-size:11px;color:var(--text3);cursor:pointer;transition:all .15s;user-select:none}
+.ex-chip:hover{border-color:var(--accent);color:var(--accent2)}
+.sparql-block{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:1rem 1.2rem;overflow-x:auto;margin-top:4px}
+.sparql-block pre{font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.8;color:var(--text2);white-space:pre;margin:0}
+.sq-kw{color:#7aabcc;font-weight:600}
+.sq-var{color:#c8885a}
+.sq-pf{color:#5dbb85}
+.sq-str{color:#d4a853}
+.result-single{text-align:center;padding:1.8rem}
+.result-single-value{font-size:56px;font-weight:300;color:var(--accent2);font-family:'Lora',serif;line-height:1}
+.result-single-label{font-size:12px;color:var(--text3);margin-top:10px;font-family:var(--fm);letter-spacing:.04em}
+.result-stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(108px,1fr));gap:8px;padding:4px 0}
+.result-stat-card{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:.8rem;text-align:center}
+.result-stat-icon{font-size:20px;margin-bottom:4px}
+.result-stat-value{font-size:20px;font-weight:300;color:var(--accent2);font-family:'Lora',serif;line-height:1}
+.result-stat-label{font-size:10px;color:var(--text3);margin-top:4px;font-family:var(--fm);text-transform:uppercase;letter-spacing:.04em}
+.result-pills{display:flex;flex-wrap:wrap;gap:6px;padding:4px 0}
+.result-pill{background:var(--bg3);border:1px solid var(--border2);border-radius:12px;padding:3px 10px;font-size:12px;color:var(--text2)}
+.result-sub{font-size:11px;color:var(--text3);margin-bottom:8px;font-family:var(--fm)}
+.no-match{text-align:center;padding:2rem;color:var(--text3);font-size:13px;line-height:1.8}
 </style>
 </head>
 <body>
@@ -107,6 +136,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg3);color:var(
   <div class="tab" onclick="show('brands',this)">☕ 브랜드 비교</div>
   <div class="tab" onclick="show('flow',this)">🔗 공급망 흐름</div>
   <div class="tab" onclick="show('trace',this)">🔍 원두 추적</div>
+  <div class="tab" onclick="show('sparql',this)">💬 온톨로지 질의</div>
 </nav>
 <div class="main">
   <div class="stats" id="statsRow"></div>
@@ -185,6 +215,34 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg3);color:var(
         <input class="search" placeholder="검색..." oninput="filterT('traceTable',this.value)">
       </div>
       <div style="overflow-x:auto"><table id="traceTable"></table></div>
+    </div>
+  </div>
+
+  <!-- ── SPARQL / Natural Language Query ── -->
+  <div class="sec" id="sec-sparql">
+    <div class="card" style="margin-bottom:14px">
+      <div class="card-title">💬 자연어 온톨로지 질의 (SPARQL)</div>
+      <div class="nl-wrap">
+        <input id="nlInput" class="nl-input" placeholder="질문을 입력하세요 (한국어/영어) — 예: 저탄소 농장 목록을 보여줘" onkeydown="if(event.key==='Enter')runNLQuery()">
+        <button class="query-btn" onclick="runNLQuery()">질의 실행 →</button>
+      </div>
+      <div class="ex-chips" id="exChips"></div>
+    </div>
+
+    <div id="sparqlDisplay" style="display:none;margin-bottom:14px" class="card">
+      <div class="card-title" style="display:flex;align-items:center;justify-content:space-between">
+        <span id="sparqlQueryTitle">생성된 SPARQL</span>
+        <span class="bk bb" style="text-transform:none;letter-spacing:0;font-size:10px">SPARQL 1.1</span>
+      </div>
+      <div class="sparql-block"><pre id="sparqlCode"></pre></div>
+    </div>
+
+    <div id="sparqlResultCard" style="display:none" class="tw">
+      <div class="th2">
+        <span class="tt" id="resultTitle">결과</span>
+        <span style="font-family:var(--fm);font-size:11px;color:var(--text3)" id="resultCount"></span>
+      </div>
+      <div style="padding:1rem 1.2rem" id="resultContent"></div>
     </div>
   </div>
 </div>
@@ -371,6 +429,384 @@ fetch('coffeeland_data.json').then(r=>r.json()).then(data=>{
 }).catch(e=>{
   document.querySelector('.main').innerHTML=`<div style="text-align:center;padding:3rem;color:var(--text3)">coffeeland_data.json 파일을 같은 폴더에 넣어주세요<br><small>${e.message}</small></div>`;
 });
+
+/* ══════════════════════════════════════════
+   자연어 → SPARQL 질의 엔진
+   ══════════════════════════════════════════ */
+const EXAMPLES = [
+  '저탄소 농장 목록',
+  '공정무역 인증 브랜드는?',
+  '가장 비싼 브랜드 TOP 5',
+  '콜롬비아 농장',
+  '카푸치노 원두 추적',
+  'ESG 점수 순위',
+  '전체 통계 요약',
+  '이중 인증 브랜드',
+  '워시드 가공 브랜드',
+  '수출 항구 목록',
+  '유기농 인증 브랜드',
+  '원산지 국가 목록',
+];
+
+const NS = 'PREFIX cf: <http://www.semanticweb.org/boogi/ontologies/2025/11/untitled-ontology-2#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n\n';
+
+const QTPL = [
+  /* ── 통계 요약 ── */
+  {
+    match: q => /(요약|summary|overview|통계|현황|statistics)/i.test(q),
+    title: '커피랜드 온톨로지 통계 요약',
+    sparql: NS+`SELECT
+    (COUNT(DISTINCT ?farm)  AS ?farms)
+    (COUNT(DISTINCT ?brand) AS ?brands)
+    (COUNT(DISTINCT ?chain) AS ?chains)
+    (COUNT(DISTINCT ?menu)  AS ?menus)
+WHERE {
+    { ?farm  rdf:type cf:Farm }
+    UNION { ?brand rdf:type cf:CoffeeBrand }
+    UNION { ?chain rdf:type cf:CoffeeChain }
+    UNION { ?menu  rdf:type cf:BeverageMenu }
+}`,
+    run: D => ({type:'stats', items:[
+      {icon:'☕', value:D.stats.menus,   label:'메뉴'},
+      {icon:'🏷️', value:D.stats.brands, label:'브랜드'},
+      {icon:'🌿', value:D.stats.farms,   label:'농장'},
+      {icon:'🏪', value:D.stats.chains,  label:'체인'},
+      {icon:'⚓', value:D.stats.ports,   label:'항구'},
+      {icon:'🌍', value:D.stats.countries, label:'국가'},
+      {icon:'🔗', value:(D.stats.triples||0).toLocaleString(), label:'트리플'},
+    ]})
+  },
+  /* ── 농장 개수 ── */
+  {
+    match: q => /농장.*(몇|수|개수)|(몇|how many).*(농장|farm)/i.test(q),
+    title: '전체 농장 개수',
+    sparql: NS+`SELECT (COUNT(?farm) AS ?totalFarms)
+WHERE { ?farm rdf:type cf:Farm . }`,
+    run: D => ({type:'single', label:'총 농장 수', value:D.farm_map.length, unit:'개'})
+  },
+  /* ── 저탄소 농장 ── */
+  {
+    match: q => /(저탄소|low.?co2|co2.?low|탄소.?낮)/i.test(q),
+    title: '저탄소 농장 목록 (CO₂ ≤ 3.0 kg/kg)',
+    sparql: NS+`SELECT ?farm ?country ?co2
+WHERE {
+    ?farm rdf:type cf:Farm ;
+          cf:locatedIn ?country ;
+          cf:hasCO2Emission ?co2 .
+    FILTER(?co2 <= 3.0)
+}
+ORDER BY ASC(?co2)`,
+    run: D => ({type:'table',
+      headers:['농장','국가','CO₂ (kg/kg)','등급'],
+      rows: D.farm_map.filter(f=>f.co2<=3.0).sort((a,b)=>a.co2-b.co2)
+                      .map(f=>[f.name, f.country, f.co2, '✅ 저탄소'])})
+  },
+  /* ── 고탄소 농장 ── */
+  {
+    match: q => /(고탄소|high.?co2|co2.?high|탄소.?높)/i.test(q),
+    title: '고탄소 농장 목록 (CO₂ > 6.0 kg/kg)',
+    sparql: NS+`SELECT ?farm ?country ?co2
+WHERE {
+    ?farm rdf:type cf:Farm ;
+          cf:locatedIn ?country ;
+          cf:hasCO2Emission ?co2 .
+    FILTER(?co2 > 6.0)
+}
+ORDER BY DESC(?co2)`,
+    run: D => ({type:'table',
+      headers:['농장','국가','CO₂ (kg/kg)','등급'],
+      rows: D.farm_map.filter(f=>f.co2>6.0).sort((a,b)=>b.co2-a.co2)
+                      .map(f=>[f.name, f.country, f.co2, '⚠️ 고탄소'])})
+  },
+  /* ── 전체 농장 목록 ── */
+  {
+    match: q => /(전체|모든|all|목록).*(농장|farm)|(농장|farm).*(전체|모든|목록)/i.test(q),
+    title: '전체 농장 목록',
+    sparql: NS+`SELECT ?farm ?country ?co2
+WHERE {
+    ?farm rdf:type cf:Farm ;
+          cf:locatedIn ?country ;
+          cf:hasCO2Emission ?co2 .
+}
+ORDER BY ?country`,
+    run: D => ({type:'table',
+      headers:['농장','국가','CO₂ (kg/kg)'],
+      rows:[...D.farm_map].sort((a,b)=>a.country.localeCompare(b.country))
+                          .map(f=>[f.name, f.country, f.co2])})
+  },
+  /* ── 국가별 농장 ── */
+  {
+    match: q => {
+      const cc=['인도네시아','indonesia','코스타리카','costa rica','콜롬비아','colombia','에티오피아','ethiopia','브라질','brazil','케냐','kenya','베트남','vietnam','페루','peru','멕시코','mexico','온두라스','honduras','과테말라','guatemala','르완다','rwanda','인도','india'];
+      return cc.some(c=>q.toLowerCase().includes(c));
+    },
+    title: '국가별 농장 조회',
+    sparql: NS+`SELECT ?farm ?co2 ?brand
+WHERE {
+    ?farm rdf:type cf:Farm ;
+          cf:locatedIn cf:{COUNTRY} ;
+          cf:hasCO2Emission ?co2 .
+    OPTIONAL { ?brand cf:producedAt ?farm }
+}`,
+    run: (D,q) => {
+      const CM={인도네시아:'Indonesia',indonesia:'Indonesia','코스타리카':'Costa Rica','costa rica':'Costa Rica',콜롬비아:'Colombia',colombia:'Colombia',에티오피아:'Ethiopia',ethiopia:'Ethiopia',브라질:'Brazil',brazil:'Brazil',케냐:'Kenya',kenya:'Kenya',베트남:'Vietnam',vietnam:'Vietnam',페루:'Peru',peru:'Peru',멕시코:'Mexico',mexico:'Mexico',온두라스:'Honduras',honduras:'Honduras',과테말라:'Guatemala',guatemala:'Guatemala',르완다:'Rwanda',rwanda:'Rwanda',인도:'India',india:'India'};
+      let cn=null;
+      for(const[k,v]of Object.entries(CM)){if(q.toLowerCase().includes(k)){cn=v;break;}}
+      const rows=D.farm_map.filter(f=>f.country===cn).map(f=>[f.name, f.co2, f.brands.slice(0,3).join(', ')]);
+      return{type:'table', title:`${cn} 농장`, headers:['농장','CO₂ (kg/kg)','관련 브랜드'], rows};
+    }
+  },
+  /* ── 브랜드 개수 ── */
+  {
+    match: q => /브랜드.*(몇|수|개수)|(몇|how many).*(브랜드|brand)/i.test(q),
+    title: '전체 브랜드 개수',
+    sparql: NS+`SELECT (COUNT(?brand) AS ?totalBrands)
+WHERE { ?brand rdf:type cf:CoffeeBrand . }`,
+    run: D => ({type:'single', label:'총 브랜드 수', value:D.brands.length, unit:'개'})
+  },
+  /* ── 가장 비싼 브랜드 ── */
+  {
+    match: q => /(가장|top|상위).*(비싼|expensive|고가|가격|price)|(비싼|expensive|고가).*(브랜드|brand)/i.test(q),
+    title: '가격 상위 브랜드 (Top 5)',
+    sparql: NS+`SELECT ?brand ?price ?method ?segment
+WHERE {
+    ?brand rdf:type cf:CoffeeBrand ;
+           cf:hasPrice ?price ;
+           cf:hasProcessingMethod ?method .
+}
+ORDER BY DESC(?price)
+LIMIT 5`,
+    run: D => ({type:'table',
+      headers:['브랜드','가격 (USD/kg)','가공방식','등급'],
+      rows:[...D.brands].filter(b=>b.price>0).sort((a,b)=>b.price-a.price).slice(0,5)
+                        .map(b=>[b.name, `$${b.price.toFixed(2)}`, b.method, b.segment||'—'])})
+  },
+  /* ── 공정무역 ── */
+  {
+    match: q => /(공정무역|fair.?trade)/i.test(q) && !/(이중|both|두.*인증)/i.test(q),
+    title: 'Fair Trade 인증 브랜드',
+    sparql: NS+`SELECT ?brand ?price ?method
+WHERE {
+    ?brand rdf:type cf:CoffeeBrand ;
+           cf:hasCertification cf:Fair_Trade ;
+           cf:hasPrice ?price ;
+           cf:hasProcessingMethod ?method .
+}
+ORDER BY DESC(?price)`,
+    run: D => ({type:'table',
+      headers:['브랜드','가격','가공방식','인증'],
+      rows:D.brands.filter(b=>b.certs.includes('Fair_Trade'))
+                   .map(b=>[b.name, b.price>0?`$${b.price.toFixed(2)}`:'—', b.method, b.certs.join(', ')])})
+  },
+  /* ── 유기농 ── */
+  {
+    match: q => /(유기농|organic)/i.test(q) && !/(이중|both|두.*인증)/i.test(q),
+    title: 'Organic 인증 브랜드',
+    sparql: NS+`SELECT ?brand ?price
+WHERE {
+    ?brand rdf:type cf:CoffeeBrand ;
+           cf:hasCertification cf:Organic .
+}`,
+    run: D => ({type:'table',
+      headers:['브랜드','가격','인증 목록'],
+      rows:D.brands.filter(b=>b.certs.includes('Organic'))
+                   .map(b=>[b.name, b.price>0?`$${b.price.toFixed(2)}`:'—', b.certs.join(', ')])})
+  },
+  /* ── 이중 인증 ── */
+  {
+    match: q => /(이중|두.*인증|both.*(cert|인증)|공정무역.*유기농|유기농.*공정무역)/i.test(q),
+    title: 'Fair Trade + Organic 이중 인증 브랜드',
+    sparql: NS+`SELECT ?brand
+WHERE {
+    ?brand rdf:type cf:CoffeeBrand ;
+           cf:hasCertification cf:Fair_Trade ;
+           cf:hasCertification cf:Organic .
+}`,
+    run: D => ({type:'table',
+      headers:['브랜드','인증'],
+      rows:D.esg_good.map(b=>[b.name, b.certs.join(' + ')])})
+  },
+  /* ── 워시드 가공 ── */
+  {
+    match: q => /(워시드|washed)/i.test(q),
+    title: 'Washed 가공 브랜드',
+    sparql: NS+`SELECT ?brand ?price ?segment
+WHERE {
+    ?brand rdf:type cf:CoffeeBrand ;
+           cf:hasProcessingMethod "Washed" ;
+           cf:hasPrice ?price .
+}`,
+    run: D => ({type:'table',
+      headers:['브랜드','가격','등급'],
+      rows:D.brands.filter(b=>b.method==='Washed')
+                   .map(b=>[b.name, b.price>0?`$${b.price.toFixed(2)}`:'—', b.segment||'—'])})
+  },
+  /* ── 내추럴 가공 ── */
+  {
+    match: q => /(내추럴|natural)/i.test(q),
+    title: 'Natural 가공 브랜드',
+    sparql: NS+`SELECT ?brand ?price
+WHERE {
+    ?brand rdf:type cf:CoffeeBrand ;
+           cf:hasProcessingMethod "Natural" .
+}`,
+    run: D => ({type:'table',
+      headers:['브랜드','가격','등급'],
+      rows:D.brands.filter(b=>b.method==='Natural')
+                   .map(b=>[b.name, b.price>0?`$${b.price.toFixed(2)}`:'—', b.segment||'—'])})
+  },
+  /* ── 메뉴 원두 추적 ── */
+  {
+    match: q => /(카푸치노|cappuccino|카페라떼|caffe.?latte|라떼|latte|에스프레소|espresso|콜드브루|cold.?brew|아메리카노|americano|플랫|flat.?white|마키아토|macchiato|에어로프레스|aeropress)/i.test(q),
+    title: '메뉴 원두 추적',
+    sparql: NS+`SELECT ?menu ?brand ?farm ?country
+WHERE {
+    ?menu  rdf:type cf:BeverageMenu ;
+           cf:usesCoffeeBrand ?brand .
+    ?brand cf:producedAt ?farm .
+    ?farm  cf:locatedIn ?country .
+    FILTER(CONTAINS(LCASE(STR(?menu)), "{MENU}"))
+}`,
+    run: (D,q) => {
+      const MM={카푸치노:'Cappuccino',cappuccino:'Cappuccino',카페라떼:'Caffe_Latte','카페 라떼':'Caffe_Latte','caffe latte':'Caffe_Latte','caffe_latte':'Caffe_Latte',라떼:'Caffe_Latte',latte:'Caffe_Latte',에스프레소:'Espresso',espresso:'Espresso',콜드브루:'Cold_Brew','cold brew':'Cold_Brew',아메리카노:'Americano',americano:'Americano','플랫 화이트':'Flat_White','flat white':'Flat_White',마키아토:'Macchiato',macchiato:'Macchiato',에어로프레스:'Aeropress',aeropress:'Aeropress'};
+      let mn=null;
+      const ql=q.toLowerCase();
+      for(const[k,v]of Object.entries(MM)){if(ql.includes(k)){mn=v;break;}}
+      const norm=s=>s.toLowerCase().replace(/[_ ]/g,'');
+      const rows=D.trace.filter(r=>mn&&norm(r.menu)===norm(mn));
+      return{type:'table',title:`${mn?.replace(/_/g,' ')} 원두 추적`,
+        headers:['메뉴','브랜드','농장','원산지'],
+        rows:rows.map(r=>[r.menu,r.brand,r.farm.replace('Farm_','').replace(/_/g,' '),r.country])};
+    }
+  },
+  /* ── 항구 목록 ── */
+  {
+    match: q => /(항구|port)/i.test(q),
+    title: '수출 항구 목록',
+    sparql: NS+`SELECT ?port
+WHERE {
+    ?port rdf:type cf:Port .
+}
+ORDER BY ?port`,
+    run: D => ({type:'pills', title:`총 ${D.port_map.length}개 수출 항구`, items:D.port_map.map(p=>p.label)})
+  },
+  /* ── 국가 목록 ── */
+  {
+    match: q => /(원산지|원산국|생산국|국가.*(목록|list|전체)|(목록|list).*(국가|country))|(몇|how many).*(국가|country)/i.test(q),
+    title: '커피 생산 국가 목록',
+    sparql: NS+`SELECT DISTINCT ?country (COUNT(?farm) AS ?farmCount)
+WHERE {
+    ?farm rdf:type cf:Farm ;
+          cf:locatedIn ?country .
+}
+GROUP BY ?country
+ORDER BY DESC(?farmCount)`,
+    run: D => {
+      const cc={};D.farm_map.forEach(f=>{cc[f.country]=(cc[f.country]||0)+1;});
+      return{type:'table', headers:['국가','농장 수'],
+        rows:Object.entries(cc).sort((a,b)=>b[1]-a[1]).map(([c,n])=>[c,n])};
+    }
+  },
+  /* ── ESG 순위 ── */
+  {
+    match: q => /(esg|환경|지속가능).*(순위|ranking|top|점수|score|높)|(순위|ranking).*(esg|환경)/i.test(q),
+    title: 'ESG 종합 점수 순위',
+    sparql: NS+`SELECT ?brand
+    ((?co2Score+?ftScore+?orgScore+?rfScore+?waterScore)/5 AS ?avgESG)
+WHERE {
+    ?brand rdf:type cf:CoffeeBrand ;
+           cf:hasESG_CO2Score    ?co2Score ;
+           cf:hasESG_FairTrade   ?ftScore ;
+           cf:hasESG_Organic     ?orgScore ;
+           cf:hasESG_Rainforest  ?rfScore ;
+           cf:hasESG_Water       ?waterScore .
+}
+ORDER BY DESC(?avgESG)`,
+    run: D => {
+      const sc=D.brands.filter(b=>b.price>0).map(b=>{
+        const e=b.esg;
+        return{n:b.name,avg:((e.co2+e.fairTrade+e.organic+e.rainforest+e.water)/5).toFixed(1),co2:e.co2,ft:e.fairTrade,org:e.organic};
+      }).sort((a,b)=>b.avg-a.avg);
+      return{type:'table',headers:['브랜드','ESG 평균','CO₂','공정무역','유기농'],
+        rows:sc.map(b=>[b.n,b.avg,b.co2,b.ft,b.org])};
+    }
+  },
+];
+
+/* ── SPARQL 구문 하이라이터 ── */
+function hlSPARQL(s){
+  return s
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/\b(SELECT|DISTINCT|WHERE|FILTER|ORDER|BY|GROUP|LIMIT|OFFSET|ASC|DESC|UNION|OPTIONAL|CONTAINS|LCASE|STR|COUNT|AS|PREFIX|BASE|BIND|HAVING|FROM|VALUES|MINUS|OPTIONAL)\b/g,'<b class="sq-kw">$1</b>')
+    .replace(/(\?[\w]+)/g,'<span class="sq-var">$1</span>')
+    .replace(/\b(cf:|rdf:|rdfs:|owl:)/g,'<span class="sq-pf">$1</span>')
+    .replace(/"([^"]+)"/g,'<span class="sq-str">"$1"</span>');
+}
+
+/* ── 결과 렌더러 ── */
+function renderResult(r){
+  if(!r)return'';
+  if(r.type==='single')
+    return`<div class="result-single"><div class="result-single-value">${r.value}</div><div class="result-single-label">${r.unit}&nbsp;·&nbsp;${r.label}</div></div>`;
+  if(r.type==='pills')
+    return`<div><div class="result-sub">${r.title||''}</div><div class="result-pills">${r.items.map(i=>`<span class="result-pill">${i}</span>`).join('')}</div></div>`;
+  if(r.type==='stats')
+    return`<div class="result-stats-grid">${r.items.map(i=>`<div class="result-stat-card"><div class="result-stat-icon">${i.icon}</div><div class="result-stat-value">${i.value}</div><div class="result-stat-label">${i.label}</div></div>`).join('')}</div>`;
+  if(r.type==='table'){
+    const cap=r.title?`<div class="result-sub">${r.title}&nbsp;(${r.rows.length}건)</div>`:'';
+    const th=r.headers.map(h=>`<th>${h}</th>`).join('');
+    const tb=r.rows.map(row=>`<tr>${row.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('');
+    return cap+`<div style="overflow-x:auto"><table><thead><tr>${th}</tr></thead><tbody>${tb}</tbody></table></div>`;
+  }
+  return'';
+}
+
+/* ── 질의 실행 ── */
+function runNLQuery(){
+  if(!D){alert('데이터 로딩 중입니다. 잠시 후 다시 시도해주세요.');return;}
+  const q=document.getElementById('nlInput').value.trim();
+  if(!q)return;
+  const tpl=QTPL.find(t=>t.match(q));
+  if(!tpl){
+    document.getElementById('sparqlDisplay').style.display='none';
+    document.getElementById('sparqlResultCard').style.display='block';
+    document.getElementById('resultTitle').textContent='결과';
+    document.getElementById('resultCount').textContent='';
+    document.getElementById('resultContent').innerHTML=`<div class="no-match">
+      <div style="font-size:28px;margin-bottom:8px">🤔</div>
+      <div>질문을 이해하지 못했습니다.</div>
+      <div style="margin-top:8px;font-size:12px">아래 예시 질문을 클릭해보세요:</div>
+      <div class="result-pills" style="justify-content:center;margin-top:12px">
+        ${EXAMPLES.map(e=>`<span class="result-pill" style="cursor:pointer" onclick="setQuery('${e}')">${e}</span>`).join('')}
+      </div>
+    </div>`;
+    return;
+  }
+  const res=tpl.run(D,q);
+  // SPARQL 표시
+  document.getElementById('sparqlDisplay').style.display='block';
+  document.getElementById('sparqlQueryTitle').textContent=tpl.title+' — 생성된 SPARQL';
+  document.getElementById('sparqlCode').innerHTML=hlSPARQL(tpl.sparql);
+  // 결과 표시
+  document.getElementById('sparqlResultCard').style.display='block';
+  document.getElementById('resultTitle').textContent=res.title||tpl.title;
+  document.getElementById('resultCount').textContent=res.type==='table'?`${res.rows.length}건`:'';
+  document.getElementById('resultContent').innerHTML=renderResult(res);
+}
+
+function setQuery(q){document.getElementById('nlInput').value=q;runNLQuery();}
+
+/* ── 예시 칩 초기화 ── */
+(function(){
+  const el=document.getElementById('exChips');
+  if(!el)return;
+  EXAMPLES.forEach(e=>{
+    const c=document.createElement('span');
+    c.className='ex-chip';c.textContent=e;
+    c.onclick=()=>setQuery(e);
+    el.appendChild(c);
+  });
+})();
 </script>
 </body>
 </html>
