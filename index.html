@@ -477,15 +477,32 @@ const EXAMPLES = [
   '저탄소 농장 목록',
   '공정무역 인증 브랜드는?',
   '가장 비싼 브랜드 TOP 5',
+  '가장 저렴한 브랜드',
   '콜롬비아 농장',
   '카푸치노 원두 추적',
   'ESG 점수 순위',
   '전체 통계 요약',
   '이중 인증 브랜드',
   '워시드 가공 브랜드',
+  '허니 가공 브랜드',
+  '웻헐드 가공 브랜드',
   '수출 항구 목록',
   '유기농 인증 브랜드',
+  'Rainforest Alliance 인증',
+  'UTZ 인증 브랜드',
   '원산지 국가 목록',
+  '전체 메뉴 목록',
+  '스타벅스 원두',
+  '블루보틀 원두',
+  '체인별 원두 브랜드',
+  '브랜드별 농장 추적',
+  '전체 공급망 추적',
+  '인증별 브랜드 수',
+  '브랜드 등급별 목록',
+  '가공방식별 브랜드 수',
+  '프리미엄 브랜드',
+  '럭셔리 브랜드',
+  '농장별 관련 브랜드',
 ];
 
 const NS = 'PREFIX cf: <http://www.semanticweb.org/boogi/ontologies/2025/11/untitled-ontology-2#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n\n';
@@ -771,13 +788,382 @@ ORDER BY DESC(?avgESG)`,
         rows:sc.map(b=>[b.n,b.avg,b.co2,b.ft,b.org])};
     }
   },
+
+  /* ═══════════════════════════════════════════
+     추가 SPARQL 질의 (Coffeeland_SPARQL_Queries)
+     ═══════════════════════════════════════════ */
+
+  /* ── 전체 메뉴 목록 ── */
+  {
+    match: q => /(전체|모든|all).*(메뉴|음료|beverage)|(메뉴|음료).*(전체|모든|목록|list)/i.test(q),
+    title: '전체 음료 메뉴 목록',
+    sparql: NS+`SELECT ?beverage ?name ?category ?priceSmall ?priceMedium ?priceLarge
+WHERE {
+    ?beverage rdf:type cf:BeverageMenu .
+    OPTIONAL { ?beverage cf:hasBeverageName ?name }
+    OPTIONAL { ?beverage cf:hasCategory ?category }
+    OPTIONAL { ?beverage cf:hasPriceSmall ?priceSmall }
+    OPTIONAL { ?beverage cf:hasPriceMedium ?priceMedium }
+    OPTIONAL { ?beverage cf:hasPriceLarge ?priceLarge }
+}
+ORDER BY ?name`,
+    run: D => {
+      const menus=[...new Set(D.trace.map(t=>t.menu))].sort();
+      const rows=menus.map(m=>{
+        const brands=[...new Set(D.trace.filter(t=>t.menu===m).map(t=>t.brand.replace(/_/g,' ')))];
+        return[m.replace(/_/g,' '), brands.join(', ')];
+      });
+      return{type:'table', title:`총 ${menus.length}개 메뉴`, headers:['메뉴','사용 브랜드'], rows};
+    }
+  },
+  /* ── 가장 저렴한 브랜드 ── */
+  {
+    match: q => /(가장|top|상위).*(저렴|cheap|싼|낮은.*가격)|(저렴|cheap|싼).*(브랜드|brand)|(가격.*(낮|low))/i.test(q),
+    title: '가격 하위 브랜드 (저렴한 순)',
+    sparql: NS+`SELECT ?brand ?price ?method ?segment
+WHERE {
+    ?brand rdf:type cf:CoffeeBrand ;
+           cf:hasPrice ?price ;
+           cf:hasProcessingMethod ?method .
+}
+ORDER BY ASC(?price)
+LIMIT 5`,
+    run: D => ({type:'table',
+      headers:['브랜드','가격 (USD/kg)','가공방식','등급'],
+      rows:[...D.brands].filter(b=>b.price>0).sort((a,b)=>a.price-b.price).slice(0,5)
+                        .map(b=>[b.name, `$${b.price.toFixed(2)}`, b.method, b.segment||'—'])})
+  },
+  /* ── 허니 가공 ── */
+  {
+    match: q => /(허니|honey)/i.test(q),
+    title: 'Honey 가공 브랜드',
+    sparql: NS+`SELECT ?brand ?price ?segment
+WHERE {
+    ?brand rdf:type cf:CoffeeBrand ;
+           cf:hasProcessingMethod "Honey" ;
+           cf:hasPrice ?price .
+}
+ORDER BY DESC(?price)`,
+    run: D => ({type:'table',
+      headers:['브랜드','가격','등급','인증'],
+      rows:D.brands.filter(b=>b.method==='Honey')
+                   .map(b=>[b.name, b.price>0?`$${b.price.toFixed(2)}`:'—', b.segment||'—', b.certs.join(', ')||'없음'])})
+  },
+  /* ── 웻헐드 가공 ── */
+  {
+    match: q => /(웻헐드|wet.?hull|웻.?헐)/i.test(q),
+    title: 'Wet Hulled 가공 브랜드',
+    sparql: NS+`SELECT ?brand ?price ?segment
+WHERE {
+    ?brand rdf:type cf:CoffeeBrand ;
+           cf:hasProcessingMethod "WetHulled" ;
+           cf:hasPrice ?price .
+}
+ORDER BY DESC(?price)`,
+    run: D => ({type:'table',
+      headers:['브랜드','가격','등급','인증'],
+      rows:D.brands.filter(b=>b.method==='WetHulled')
+                   .map(b=>[b.name, b.price>0?`$${b.price.toFixed(2)}`:'—', b.segment||'—', b.certs.join(', ')||'없음'])})
+  },
+  /* ── Rainforest Alliance 인증 ── */
+  {
+    match: q => /(rainforest|레인포레스트|열대우림)/i.test(q) && !/(이중|both|두.*인증)/i.test(q),
+    title: 'Rainforest Alliance 인증 브랜드',
+    sparql: NS+`SELECT ?brand ?price ?method
+WHERE {
+    ?brand rdf:type cf:CoffeeBrand ;
+           cf:hasCertification cf:Rainforest_Alliance ;
+           cf:hasPrice ?price .
+}
+ORDER BY DESC(?price)`,
+    run: D => ({type:'table',
+      headers:['브랜드','가격','가공방식','전체 인증'],
+      rows:D.brands.filter(b=>b.certs.includes('Rainforest_Alliance'))
+                   .map(b=>[b.name, b.price>0?`$${b.price.toFixed(2)}`:'—', b.method, b.certs.join(', ')])})
+  },
+  /* ── UTZ 인증 ── */
+  {
+    match: q => /(utz)/i.test(q),
+    title: 'UTZ 인증 브랜드',
+    sparql: NS+`SELECT ?brand ?price ?segment
+WHERE {
+    ?brand rdf:type cf:CoffeeBrand ;
+           cf:hasCertification cf:UTZ .
+}
+ORDER BY ?brand`,
+    run: D => ({type:'table',
+      headers:['브랜드','가격','등급','전체 인증'],
+      rows:D.brands.filter(b=>b.certs.includes('UTZ'))
+                   .map(b=>[b.name, b.price>0?`$${b.price.toFixed(2)}`:'—', b.segment||'—', b.certs.join(', ')])})
+  },
+  /* ── 체인별 원두 브랜드 (특정 체인) ── */
+  {
+    match: q => {
+      const chains=['스타벅스','starbucks','블루보틀','blue.?bottle','피츠','peet','카리부','caribou','던킨','dunkin','맥카페','mccafe','루이싱','luckin','라바짜','lavazza','카페네로','caffe.?nero','코스타','costa.?coffee','인텔리젠시아','intelligentsia','필츠','philz','팀홀튼','tim.?horton','커피프로젝트','coffee.?project'];
+      return chains.some(c=>new RegExp(c,'i').test(q)) && /(원두|브랜드|brand|메뉴|menu|공급|supply|사용)/i.test(q);
+    },
+    title: '체인별 사용 원두 브랜드',
+    sparql: NS+`SELECT ?chain ?brand
+WHERE {
+    ?chain rdf:type cf:CoffeeChain .
+    ?chain cf:sourcesBrandFrom ?brand .
+}
+ORDER BY ?chain`,
+    run: (D,q) => {
+      const CM={스타벅스:'Starbucks',starbucks:'Starbucks',블루보틀:'Blue_Bottle','blue bottle':'Blue_Bottle',피츠:'Peet_Coffee',peet:'Peet_Coffee',카리부:'Caribou_Coffee',caribou:'Caribou_Coffee',던킨:'Dunkin_Donuts',dunkin:'Dunkin_Donuts',맥카페:'McCafe',mccafe:'McCafe',루이싱:'Luckin_Coffee',luckin:'Luckin_Coffee',라바짜:'Lavazza',lavazza:'Lavazza','카페네로':'Caffe_Nero','caffe nero':'Caffe_Nero',코스타:'Costa_Coffee','costa coffee':'Costa_Coffee',인텔리젠시아:'Intelligentsia_Coffee',intelligentsia:'Intelligentsia_Coffee',필츠:'Philz_Coffee',philz:'Philz_Coffee',팀홀튼:'Tim_Hortons','tim horton':'Tim_Hortons',커피프로젝트:'Coffee_Project_NY','coffee project':'Coffee_Project_NY'};
+      let cn=null;
+      const ql=q.toLowerCase();
+      for(const[k,v]of Object.entries(CM)){if(ql.includes(k)){cn=v;break;}}
+      if(!cn)return{type:'pills', title:'체인을 특정해주세요', items:Object.values(CM).map(c=>c.replace(/_/g,' '))};
+      const brands=[...new Set(D.flow_links.filter(l=>l.target==='chain_'+cn&&l.type==='supplies').map(l=>l.source.replace('brand_','').replace(/_/g,' ')))];
+      const menus=brands.flatMap(b=>{
+        const bid=b.replace(/ /g,'_');
+        return[...new Set(D.trace.filter(t=>t.brand===bid).map(t=>t.menu.replace(/_/g,' ')))];
+      });
+      return{type:'table', title:`${cn.replace(/_/g,' ')} — 사용 원두 및 메뉴`,
+        headers:['원두 브랜드','관련 메뉴'],
+        rows:brands.map(b=>{
+          const bid=b.replace(/ /g,'_');
+          const ms=[...new Set(D.trace.filter(t=>t.brand===bid).map(t=>t.menu.replace(/_/g,' ')))];
+          return[b, ms.join(', ')||'—'];
+        })};
+    }
+  },
+  /* ── 체인별 원두 브랜드 (전체) ── */
+  {
+    match: q => /(체인|chain).*(원두|브랜드|brand)|체인별/i.test(q),
+    title: '체인별 사용 원두 브랜드',
+    sparql: NS+`SELECT ?chain ?brand
+WHERE {
+    ?chain rdf:type cf:CoffeeChain .
+    ?chain cf:sourcesBrandFrom ?brand .
+}
+ORDER BY ?chain`,
+    run: D => {
+      const chainMap={};
+      D.flow_links.filter(l=>l.type==='supplies').forEach(l=>{
+        const chain=l.target.replace('chain_','').replace(/_/g,' ');
+        const brand=l.source.replace('brand_','').replace(/_/g,' ');
+        if(!chainMap[chain])chainMap[chain]=[];
+        chainMap[chain].push(brand);
+      });
+      return{type:'table', headers:['체인','사용 원두 브랜드','브랜드 수'],
+        rows:Object.entries(chainMap).sort((a,b)=>b[1].length-a[1].length)
+          .map(([c,bs])=>[c, bs.join(', '), bs.length])};
+    }
+  },
+  /* ── 브랜드별 농장 추적 ── */
+  {
+    match: q => /(브랜드).*(농장|farm|원산지|origin)|(농장|farm).*(브랜드)|(브랜드별.*추적)/i.test(q),
+    title: '커피 브랜드별 원산지 농장 추적',
+    sparql: NS+`SELECT ?brand ?farm ?country
+WHERE {
+    ?brand rdf:type cf:CoffeeBrand .
+    ?brand cf:sourcedFrom ?farm .
+    ?farm cf:locatedIn ?country .
+}
+ORDER BY ?brand`,
+    run: D => ({type:'table',
+      headers:['브랜드','원산지 농장','국가','CO₂ (kg/kg)'],
+      rows:D.brands.flatMap(b=>
+        b.farms.map(f=>{
+          const farm=D.farm_map.find(fm=>fm.name===f);
+          return[b.name, f, farm?farm.country:'—', farm?farm.co2:'—'];
+        })
+      )})
+  },
+  /* ── 농장별 관련 브랜드 ── */
+  {
+    match: q => /(농장별|농장).*(관련|연결|연계|생산).*(브랜드)/i.test(q),
+    title: '농장별 관련 브랜드',
+    sparql: NS+`SELECT ?farm ?country ?brand
+WHERE {
+    ?farm rdf:type cf:Farm .
+    ?farm cf:locatedIn ?country .
+    ?brand cf:sourcedFrom ?farm .
+}
+ORDER BY ?farm`,
+    run: D => ({type:'table',
+      headers:['농장','국가','CO₂','관련 브랜드'],
+      rows:D.farm_map.filter(f=>f.brands.length>0)
+        .map(f=>[f.name, f.country, f.co2, f.brands.map(b=>b.replace(/_/g,' ')).join(', ')])})
+  },
+  /* ── 전체 공급망 추적 ── */
+  {
+    match: q => /(전체|full).*(공급망|supply.?chain|추적|trace)|(공급망).*(전체|추적)|farm.*brand.*chain/i.test(q),
+    title: '전체 공급망 추적: 농장 → 브랜드 → 체인 → 음료',
+    sparql: NS+`SELECT ?farm ?brand ?chain ?beverageName
+WHERE {
+    ?brand cf:sourcedFrom ?farm .
+    ?chain cf:sourcesBrandFrom ?brand .
+    ?chain cf:offersMenu ?beverage .
+    ?beverage cf:hasBeverageName ?beverageName .
+}
+ORDER BY ?farm`,
+    run: D => {
+      const rows=[];
+      D.flow_links.filter(l=>l.type==='supplies').forEach(sl=>{
+        const brandId=sl.source.replace('brand_','');
+        const chainName=sl.target.replace('chain_','').replace(/_/g,' ');
+        const brand=D.brands.find(b=>b.id===brandId);
+        if(!brand)return;
+        brand.farms.forEach(farmName=>{
+          const farm=D.farm_map.find(f=>f.name===farmName);
+          const menus=[...new Set(D.trace.filter(t=>t.brand===brandId).map(t=>t.menu.replace(/_/g,' ')))];
+          rows.push([farmName, brand.name, chainName, menus.slice(0,3).join(', ')||'—']);
+        });
+      });
+      return{type:'table', title:`공급망 경로 ${rows.length}건`,
+        headers:['농장','브랜드','체인','메뉴'], rows:rows.slice(0,30)};
+    }
+  },
+  /* ── 인증별 브랜드 수 통계 ── */
+  {
+    match: q => /(인증별|인증).*(브랜드.*수|통계|count|분포)|(certification).*(stat|count)/i.test(q),
+    title: '인증별 커피 브랜드 수 통계',
+    sparql: NS+`SELECT ?certification (COUNT(?brand) AS ?brandCount)
+WHERE {
+    ?brand rdf:type cf:CoffeeBrand .
+    ?brand cf:brandHasCertification ?certification .
+}
+GROUP BY ?certification
+ORDER BY DESC(?brandCount)`,
+    run: D => {
+      const certMap={};
+      D.brands.forEach(b=>b.certs.forEach(c=>{certMap[c]=(certMap[c]||0)+1;}));
+      const noCert=D.brands.filter(b=>b.certs.length===0).length;
+      const rows=Object.entries(certMap).sort((a,b)=>b[1]-a[1]).map(([c,n])=>[c.replace(/_/g,' '), n]);
+      if(noCert>0)rows.push(['(인증 없음)', noCert]);
+      return{type:'table', headers:['인증','브랜드 수'], rows};
+    }
+  },
+  /* ── 브랜드 등급별 목록 ── */
+  {
+    match: q => /(등급별|segment|등급).*(목록|list|브랜드)|(프리미엄|premium|럭셔리|luxury|미드레인지|mid.?range|버짓|budget).*(브랜드|목록)/i.test(q),
+    title: '브랜드 가격 등급별 목록',
+    sparql: NS+`SELECT ?brand ?price ?segment ?method
+WHERE {
+    ?brand rdf:type cf:CoffeeBrand ;
+           cf:hasPrice ?price ;
+           cf:hasPriceSegment ?segment .
+}
+ORDER BY ?segment DESC(?price)`,
+    run: (D,q) => {
+      let seg=null;
+      if(/(럭셔리|luxury)/i.test(q))seg='Luxury';
+      else if(/(프리미엄|premium)/i.test(q))seg='Premium';
+      else if(/(미드레인지|mid.?range|중간)/i.test(q))seg='MidRange';
+      else if(/(버짓|budget|저가)/i.test(q))seg='Budget';
+      else if(/(스페셜티|specialty)/i.test(q))seg='Specialty';
+      const filtered=seg?D.brands.filter(b=>b.segment===seg):D.brands;
+      const title=seg?`${seg} 등급 브랜드`:'전체 등급별 브랜드';
+      return{type:'table', title,
+        headers:['브랜드','등급','가격 (USD/kg)','가공방식','인증'],
+        rows:[...filtered].sort((a,b)=>b.price-a.price)
+          .map(b=>[b.name, b.segment||'—', `$${b.price.toFixed(2)}`, b.method, b.certs.join(', ')||'없음'])};
+    }
+  },
+  /* ── 가공방식별 브랜드 수 ── */
+  {
+    match: q => /(가공방식별|processing).*(브랜드.*수|통계|count|분포)|(가공.*방식).*(통계|분포)/i.test(q),
+    title: '가공방식별 브랜드 수 통계',
+    sparql: NS+`SELECT ?method (COUNT(?brand) AS ?brandCount)
+WHERE {
+    ?brand rdf:type cf:CoffeeBrand ;
+           cf:hasProcessingMethod ?method .
+}
+GROUP BY ?method
+ORDER BY DESC(?brandCount)`,
+    run: D => {
+      const methodMap={};
+      D.brands.forEach(b=>{methodMap[b.method]=(methodMap[b.method]||0)+1;});
+      return{type:'table', headers:['가공방식','브랜드 수','대표 브랜드'],
+        rows:Object.entries(methodMap).sort((a,b)=>b[1]-a[1]).map(([m,n])=>{
+          const reps=D.brands.filter(b=>b.method===m).slice(0,3).map(b=>b.name).join(', ');
+          return[m, n, reps];
+        })};
+    }
+  },
+  /* ── CO₂ 배출량 평균 국가별 ── */
+  {
+    match: q => /(국가별|country).*(co2|탄소|배출|emission).*(평균|avg)|(co2|탄소).*(국가|country)/i.test(q),
+    title: '국가별 평균 CO₂ 배출량',
+    sparql: NS+`SELECT ?country (AVG(?co2) AS ?avgCO2) (COUNT(?farm) AS ?farmCount)
+WHERE {
+    ?farm rdf:type cf:Farm ;
+          cf:locatedIn ?country ;
+          cf:hasCO2Emission ?co2 .
+}
+GROUP BY ?country
+ORDER BY ASC(?avgCO2)`,
+    run: D => {
+      const cc={};
+      D.farm_map.forEach(f=>{
+        if(!cc[f.country])cc[f.country]={sum:0,cnt:0};
+        cc[f.country].sum+=f.co2; cc[f.country].cnt++;
+      });
+      const rows=Object.entries(cc).map(([c,v])=>[c, (v.sum/v.cnt).toFixed(2), v.cnt])
+        .sort((a,b)=>parseFloat(a[1])-parseFloat(b[1]));
+      return{type:'table', headers:['국가','평균 CO₂ (kg/kg)','농장 수'], rows};
+    }
+  },
+  /* ── 전체 브랜드 상세 목록 ── */
+  {
+    match: q => /(전체|모든|all).*(브랜드|brand).*(목록|list|정보|상세)|(브랜드|brand).*(전체|모든|목록)/i.test(q),
+    title: '전체 커피 브랜드 상세 목록',
+    sparql: NS+`SELECT ?brand ?price ?method ?segment ?certification
+WHERE {
+    ?brand rdf:type cf:CoffeeBrand .
+    OPTIONAL { ?brand cf:hasPrice ?price }
+    OPTIONAL { ?brand cf:hasProcessingMethod ?method }
+    OPTIONAL { ?brand cf:hasPriceSegment ?segment }
+    OPTIONAL { ?brand cf:hasCertification ?certification }
+}
+ORDER BY DESC(?price)`,
+    run: D => ({type:'table',
+      headers:['브랜드','가격 (USD/kg)','가공방식','등급','인증','원산지 농장'],
+      rows:[...D.brands].sort((a,b)=>b.price-a.price)
+        .map(b=>[b.name, `$${b.price.toFixed(2)}`, b.method, b.segment||'—', b.certs.join(', ')||'없음', b.farms.join(', ')||'—'])})
+  },
+  /* ── 지속가능성 영향 (impacts) ── */
+  {
+    match: q => /(지속가능|sustainability).*(영향|impact|지표)|(영향|impact).*(브랜드)/i.test(q),
+    title: '커피 브랜드의 지속가능성 영향',
+    sparql: NS+`SELECT ?brand ?metric
+WHERE {
+    ?brand rdf:type cf:CoffeeBrand .
+    ?brand cf:hasBrandImpact ?metric .
+}
+ORDER BY ?brand`,
+    run: D => ({type:'table',
+      headers:['브랜드','지속가능성 지표','CO₂ ESG','가격'],
+      rows:D.brands.filter(b=>b.impacts&&b.impacts.length>0)
+        .map(b=>[b.name, b.impacts.map(i=>i.replace('Metric_','').replace(/_/g,' ')).join(', '), b.esg.co2, `$${b.price.toFixed(2)}`])})
+  },
+  /* ── 고위험 ESG 공급망 ── */
+  {
+    match: q => /(esg|환경).*(고위험|high.?risk|위험|경고|alert)|(고위험|위험).*(esg|환경|농장|farm)/i.test(q),
+    title: 'ESG 고위험 공급망 (고탄소 체인)',
+    sparql: NS+`SELECT ?farm ?brand ?chain ?co2
+WHERE {
+    ?farm rdf:type cf:Farm ;
+          cf:hasCO2Emission ?co2 .
+    ?brand cf:sourcedFrom ?farm .
+    ?chain cf:sourcesBrandFrom ?brand .
+    FILTER(?co2 > 6.0)
+}
+ORDER BY DESC(?co2)`,
+    run: D => ({type:'table',
+      headers:['농장','브랜드','체인','CO₂ (kg/kg)'],
+      rows:D.esg_high.map(e=>[e.farm, e.brand, e.chain, e.co2])})
+  },
 ];
 
 /* ── SPARQL 구문 하이라이터 ── */
 function hlSPARQL(s){
   return s
     .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-    .replace(/\b(SELECT|DISTINCT|WHERE|FILTER|ORDER|BY|GROUP|LIMIT|OFFSET|ASC|DESC|UNION|OPTIONAL|CONTAINS|LCASE|STR|COUNT|AS|PREFIX|BASE|BIND|HAVING|FROM|VALUES|MINUS|OPTIONAL)\b/g,'<b class="sq-kw">$1</b>')
+    .replace(/\b(SELECT|DISTINCT|WHERE|FILTER|ORDER|BY|GROUP|LIMIT|OFFSET|ASC|DESC|UNION|OPTIONAL|CONTAINS|LCASE|STR|COUNT|AVG|SUM|MIN|MAX|AS|PREFIX|BASE|BIND|HAVING|FROM|VALUES|MINUS|CONSTRUCT|ASK)\b/g,'<b class="sq-kw">$1</b>')
     .replace(/(\?[\w]+)/g,'<span class="sq-var">$1</span>')
     .replace(/\b(cf:|rdf:|rdfs:|owl:)/g,'<span class="sq-pf">$1</span>')
     .replace(/"([^"]+)"/g,'<span class="sq-str">"$1"</span>');
