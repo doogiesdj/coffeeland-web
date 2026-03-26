@@ -430,7 +430,7 @@ function renderFlow(nodes,links){
   const STROKE={farm:'#5dbb85',brand:'#c8885a',chain:'#7aabcc'};
   const BG={farm:'rgba(93,187,133,.12)',brand:'rgba(200,136,90,.12)',chain:'rgba(122,171,204,.12)'};
   const pos={};
-  const place=(arr,x)=>arr.forEach((n,i)=>{pos[n.id]={x,y:PAD_TOP+i*ROW_H+ROW_H/2}});
+  const place=(arr,x)=>{const offset=(maxCount-arr.length)*ROW_H/2;arr.forEach((n,i)=>{pos[n.id]={x,y:PAD_TOP+offset+i*ROW_H+ROW_H/2}})};
   place(farms,COL.farm);place(brands,COL.brand);place(chains,COL.chain);
   /* build directional adjacency: farm→brand (produces), brand→chain (supplies) */
   const downstream={},upstream={};
@@ -555,7 +555,8 @@ function renderTraceFlow(trace, data){
   arrs.forEach((arr,ci)=>{
     arr.forEach((id,ri)=>{
       const key=prefixes[ci]+id;
-      pos[key]={x:colX[ci],y:PAD_TOP+ri*ROW_H+ROW_H/2};
+      const offset=(maxCount-arrs[ci].length)*ROW_H/2;
+      pos[key]={x:colX[ci],y:PAD_TOP+offset+ri*ROW_H+ROW_H/2};
       nodeType[key]=TYPES[ci];nodeCol[key]=ci;
     });
   });
