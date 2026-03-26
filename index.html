@@ -226,7 +226,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg3);color:var(
 
   <div class="sec" id="sec-trace">
     <div class="card" style="margin-bottom:14px">
-      <div class="card-title">Farm → Brand → Menu 원두 추적 흐름도 (노드에 마우스를 올리면 연결 경로 하이라이트)</div>
+      <div class="card-title">메뉴 → 브랜드 → 농장 → 포트 → 웨어하우스 → 국가 전체 공급망 추적 (노드 호버 시 연결 경로 하이라이트)</div>
       <div style="overflow-x:auto"><svg id="traceSvg"></svg></div>
       <div id="traceInfo" style="margin-top:10px;padding:.7rem 1rem;background:var(--bg3);border-radius:var(--r);font-size:12.5px;color:var(--text2);min-height:44px;border:1px solid var(--border)">
         노드를 클릭하면 상세 정보가 표시됩니다.
@@ -522,94 +522,92 @@ function showFlowInfo(n){
   else{info.innerHTML=`커피 체인: <strong style="color:var(--text)">${n.label}</strong>`;}
 }
 
-function renderTraceFlow(trace, farmMap){
+function renderTraceFlow(trace, farmMap, portMap, warehouses, farmPortMap){
   const svg=document.getElementById('traceSvg');
-  const W=Math.max(svg.parentElement.clientWidth||900,700);
-  /* extract unique entities */
-  const farmSet=new Map(), brandSet=new Set(), menuSet=new Set();
-  trace.forEach(t=>{
-    farmSet.set(t.farm,t.country);
-    brandSet.add(t.brand);
-    menuSet.add(t.menu);
-  });
-  const farms=[...farmSet.keys()].sort();
-  const brands=[...brandSet].sort();
-  const menus=[...menuSet].sort();
-  const maxCount=Math.max(farms.length,brands.length,menus.length);
-  const ROW_H=36,PAD_TOP=50,PAD_BOT=20;
+  const W=Math.max(svg.parentElement.clientWidth||1200,1000);
+  /* collect unique entities */
+  const menuArr=[...new Set(trace.map(t=>t.menu))].sort();
+  const brandArr=[...new Set(trace.map(t=>t.brand))].sort();
+  const farmArr=farmMap.map(f=>f.id).sort();
+  const portArr=portMap.map(p=>p.id).sort();
+  const whArr=warehouses.map(w=>w.id).sort();
+  const countryArr=[...new Set(warehouses.map(w=>w.country))].sort();
+  const maxCount=Math.max(menuArr.length,brandArr.length,farmArr.length,portArr.length,whArr.length,countryArr.length);
+  const ROW_H=34,PAD_TOP=50,PAD_BOT=20,NW=100,NH=28;
   const H=PAD_TOP+maxCount*ROW_H+PAD_BOT;
   svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.setAttribute('width',W);svg.setAttribute('height',H);
   svg.style.background='var(--bg3)';svg.style.borderRadius='8px';
-  const COL={farm:W*.1,brand:W*.45,menu:W*.85};
-  const STROKE={farm:'#5dbb85',brand:'#c8885a',menu:'#a078c8'};
-  const BG={farm:'rgba(93,187,133,.12)',brand:'rgba(200,136,90,.12)',menu:'rgba(160,120,200,.12)'};
-  const pos={};
-  const placeArr=(arr,x,prefix)=>arr.forEach((id,i)=>{pos[prefix+id]={x,y:PAD_TOP+i*ROW_H+ROW_H/2}});
-  placeArr(farms,COL.farm,'f_');placeArr(brands,COL.brand,'b_');placeArr(menus,COL.menu,'m_');
-  /* build links: farm→brand (produces), brand→menu (usedIn) */
-  const linkSet=new Set();
-  const links=[];
-  trace.forEach(t=>{
-    const fb=`f_${t.farm}|b_${t.brand}`;
-    if(!linkSet.has(fb)){linkSet.add(fb);links.push({source:'f_'+t.farm,target:'b_'+t.brand,type:'produces'})}
-    const bm=`b_${t.brand}|m_${t.menu}`;
-    if(!linkSet.has(bm)){linkSet.add(bm);links.push({source:'b_'+t.brand,target:'m_'+t.menu,type:'usedIn'})}
-  });
+  const COL=[W*.06, W*.20, W*.38, W*.56, W*.74, W*.92];
+  const TYPES=['menu','brand','farm','port','warehouse','country'];
+  const COLORS={'menu':'#a078c8','brand':'#c8885a','farm':'#5dbb85','port':'#7aabcc','warehouse':'#d4a853','country':'#d97060'};
+  const BGS={'menu':'rgba(160,120,200,.12)','brand':'rgba(200,136,90,.12)','farm':'rgba(93,187,133,.12)','port':'rgba(122,171,204,.12)','warehouse':'rgba(212,168,83,.12)','country':'rgba(217,112,96,.12)'};
+  const HEADERS=['메뉴','브랜드','농장','포트','웨어하우스','국가'];
+  /* position nodes */
+  const pos={},nodeType={};
+  const plc=(arr,col,prefix,type)=>arr.forEach((id,i)=>{const key=prefix+id;pos[key]={x:COL[col],y:PAD_TOP+i*ROW_H+ROW_H/2};nodeType[key]=type});
+  plc(menuArr,0,'m_','menu');plc(brandArr,1,'b_','brand');plc(farmArr,2,'f_','farm');
+  plc(portArr,3,'p_','port');plc(whArr,4,'w_','warehouse');plc(countryArr,5,'c_','country');
+  /* build all links */
+  const linkSet=new Set(),links=[];
+  const addLink=(src,tgt,type)=>{const k=src+'|'+tgt;if(!linkSet.has(k)){linkSet.add(k);links.push({source:src,target:tgt,type})}};
+  /* menu↔brand */
+  trace.forEach(t=>{addLink('m_'+t.menu,'b_'+t.brand,'menu_brand')});
+  /* brand↔farm */
+  trace.forEach(t=>{addLink('b_'+t.brand,'f_'+t.farm,'brand_farm')});
+  /* farm↔port */
+  farmMap.forEach(f=>{const p=farmPortMap[f.country];if(p)addLink('f_'+f.id,'p_'+p,'farm_port')});
+  /* port↔warehouse */
+  warehouses.forEach(w=>{addLink('p_'+w.port,'w_'+w.id,'port_wh')});
+  /* warehouse↔country */
+  warehouses.forEach(w=>{addLink('w_'+w.id,'c_'+w.country,'wh_country')});
   /* directional adjacency */
-  const allIds=[...farms.map(f=>'f_'+f),...brands.map(b=>'b_'+b),...menus.map(m=>'m_'+m)];
-  const downstream={},upstream={},nodeType={};
-  allIds.forEach(id=>{downstream[id]=new Set();upstream[id]=new Set()});
-  farms.forEach(f=>{nodeType['f_'+f]='farm'});brands.forEach(b=>{nodeType['b_'+b]='brand'});menus.forEach(m=>{nodeType['m_'+m]='menu'});
-  links.forEach(l=>{downstream[l.source].add(l.target);upstream[l.target].add(l.source)});
+  const downstream={},upstream={};
+  Object.keys(pos).forEach(id=>{downstream[id]=new Set();upstream[id]=new Set()});
+  links.forEach(l=>{if(downstream[l.source])downstream[l.source].add(l.target);if(upstream[l.target])upstream[l.target].add(l.source)});
+  /* get connected: walk full chain in both directions */
   function getConnected(id){
-    const connNodes=new Set([id]),connLinks=new Set();
-    const type=nodeType[id];
-    if(type==='farm'){
-      downstream[id].forEach(bId=>{connNodes.add(bId);connLinks.add(id+'|'+bId);
-        downstream[bId].forEach(mId=>{connNodes.add(mId);connLinks.add(bId+'|'+mId)})});
-    }else if(type==='menu'){
-      upstream[id].forEach(bId=>{connNodes.add(bId);connLinks.add(bId+'|'+id);
-        upstream[bId].forEach(fId=>{connNodes.add(fId);connLinks.add(fId+'|'+bId)})});
-    }else{
-      upstream[id].forEach(fId=>{connNodes.add(fId);connLinks.add(fId+'|'+id)});
-      downstream[id].forEach(mId=>{connNodes.add(mId);connLinks.add(id+'|'+mId)});
-    }
-    return{nodes:connNodes,links:connLinks};
+    const cn=new Set([id]),cl=new Set();
+    /* walk right (downstream) */
+    const walkDown=(nid)=>{downstream[nid]&&downstream[nid].forEach(nb=>{if(!cn.has(nb)){cn.add(nb);cl.add(nid+'|'+nb);walkDown(nb)}else{cl.add(nid+'|'+nb)}})};
+    /* walk left (upstream) */
+    const walkUp=(nid)=>{upstream[nid]&&upstream[nid].forEach(nb=>{if(!cn.has(nb)){cn.add(nb);cl.add(nb+'|'+nid);walkUp(nb)}else{cl.add(nb+'|'+nid)}})};
+    walkDown(id);walkUp(id);
+    return{nodes:cn,links:cl};
   }
+  const LINK_COLORS={'menu_brand':'rgba(160,120,200,','brand_farm':'rgba(200,136,90,','farm_port':'rgba(93,187,133,','port_wh':'rgba(122,171,204,','wh_country':'rgba(217,112,96,'};
   let html='<defs><filter id="tglow"><feGaussianBlur stdDeviation="2" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>';
-  /* draw paths */
+  /* draw links */
   links.forEach(l=>{
     const s=pos[l.source],t=pos[l.target];if(!s||!t)return;
-    const mx=(s.x+t.x)/2;
-    const sc=l.type==='produces'?'rgba(200,136,90,.2)':'rgba(160,120,200,.2)';
-    html+=`<path class="trace-link" data-source="${l.source}" data-target="${l.target}" data-type="${l.type}" d="M${s.x+58},${s.y} C${mx},${s.y} ${mx},${t.y} ${t.x-58},${t.y}" fill="none" stroke="${sc}" stroke-width="1.2" style="transition:stroke .2s,stroke-width .2s,opacity .2s"/>`;
+    const mx=(s.x+t.x)/2;const base=LINK_COLORS[l.type]||'rgba(255,255,255,';
+    html+=`<path class="trace-link" data-source="${l.source}" data-target="${l.target}" data-type="${l.type}" d="M${s.x+NW/2+2},${s.y} C${mx},${s.y} ${mx},${t.y} ${t.x-NW/2-2},${t.y}" fill="none" stroke="${base}.18)" stroke-width="1" style="transition:stroke .2s,stroke-width .2s,opacity .2s"/>`;
   });
   /* draw nodes */
+  const fmLookup={};farmMap.forEach(f=>{fmLookup[f.id]=f});
+  const pLookup={};portMap.forEach(p=>{pLookup[p.id]=p});
+  const wLookup={};warehouses.forEach(w=>{wLookup[w.id]=w});
   const drawNode=(id,label,type,extra)=>{
     const p=pos[id];if(!p)return;
-    const c=STROKE[type],bg=BG[type];
-    const lbl=label.length>16?label.slice(0,15)+'…':label;
+    const c=COLORS[type],bg=BGS[type];
+    const lbl=label.length>14?label.slice(0,13)+'…':label;
     html+=`<g class="trace-node" data-id="${id}" style="cursor:pointer;transition:opacity .2s">
-      <rect x="${p.x-56}" y="${p.y-15}" width="112" height="30" rx="7" fill="${bg}" stroke="${c}" stroke-width="1" style="transition:fill .2s,stroke-width .2s,filter .15s"/>
-      <text x="${p.x}" y="${p.y-2}" text-anchor="middle" font-family="Inter,sans-serif" font-size="10.5" font-weight="500" fill="${c}">${lbl}</text>
-      ${extra?`<text x="${p.x}" y="${p.y+10}" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="${c}99">${extra}</text>`:''}
+      <rect x="${p.x-NW/2}" y="${p.y-NH/2}" width="${NW}" height="${NH}" rx="6" fill="${bg}" stroke="${c}" stroke-width="1" style="transition:fill .2s,stroke-width .2s,filter .15s"/>
+      <text x="${p.x}" y="${p.y+(extra?-2:4)}" text-anchor="middle" font-family="Inter,sans-serif" font-size="9.5" font-weight="500" fill="${c}">${lbl}</text>
+      ${extra?`<text x="${p.x}" y="${p.y+10}" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="8" fill="${c}88">${extra}</text>`:''}
     </g>`;
   };
-  farms.forEach(f=>{
-    const fm=farmMap.find(x=>x.id===f);
-    drawNode('f_'+f,f.replace('Farm_','').replace(/_/g,' '),'farm',fm?`${fm.country} · CO₂: ${fm.co2}`:farmSet.get(f));
-  });
-  brands.forEach(b=>drawNode('b_'+b,b.replace(/_/g,' '),'brand',''));
-  menus.forEach(m=>drawNode('m_'+m,m.replace(/_/g,' '),'menu',''));
+  menuArr.forEach(m=>drawNode('m_'+m,m.replace(/_/g,' '),'menu',''));
+  brandArr.forEach(b=>drawNode('b_'+b,b.replace(/_/g,' '),'brand',''));
+  farmArr.forEach(f=>{const fm=fmLookup[f];drawNode('f_'+f,f.replace('Farm_','').replace(/_/g,' '),'farm',fm?fm.country:'')});
+  portArr.forEach(p=>{const pm=pLookup[p];drawNode('p_'+p,pm?pm.label:p.replace('Port_',''),'port','')});
+  whArr.forEach(w=>{const wm=wLookup[w];drawNode('w_'+w,wm?wm.label:w,'warehouse',wm?wm.country:'')});
+  countryArr.forEach(c=>drawNode('c_'+c,c.replace(/_/g,' '),'country',''));
   /* column headers */
-  [['농장 (Farm)',COL.farm,'#5dbb85'],['브랜드 (Brand)',COL.brand,'#c8885a'],['메뉴 (Menu)',COL.menu,'#a078c8']].forEach(([t,x,c])=>{
-    html+=`<text x="${x}" y="24" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="${c}" letter-spacing=".04em">${t}</text>`;
-  });
+  HEADERS.forEach((t,i)=>{html+=`<text x="${COL[i]}" y="22" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9.5" fill="${COLORS[TYPES[i]]}" letter-spacing=".04em" font-weight="600">${t}</text>`});
   svg.innerHTML=html;
   /* hover highlight */
   const allNodes=svg.querySelectorAll('.trace-node');
   const allLinks=svg.querySelectorAll('.trace-link');
-  const LINK_HI={produces:'rgba(200,136,90,.85)',usedIn:'rgba(160,120,200,.85)'};
   allNodes.forEach(g=>{
     const nid=g.getAttribute('data-id');
     g.addEventListener('mouseenter',()=>{
@@ -617,41 +615,25 @@ function renderTraceFlow(trace, farmMap){
       allNodes.forEach(g2=>{
         const id2=g2.getAttribute('data-id');
         if(conn.nodes.has(id2)){g2.style.opacity='1';g2.querySelector('rect').style.strokeWidth='2';if(id2===nid)g2.querySelector('rect').style.filter='url(#tglow)';}
-        else{g2.style.opacity='.15'}
+        else{g2.style.opacity='.12'}
       });
       allLinks.forEach(p=>{
-        const linkKey=p.getAttribute('data-source')+'|'+p.getAttribute('data-target');
-        if(conn.links.has(linkKey)){
-          p.style.stroke=LINK_HI[p.getAttribute('data-type')];p.style.strokeWidth='2.5';p.style.opacity='1';
-        }else{p.style.opacity='.06'}
+        const lk=p.getAttribute('data-source')+'|'+p.getAttribute('data-target');
+        if(conn.links.has(lk)){const base=LINK_COLORS[p.getAttribute('data-type')]||'rgba(255,255,255,';p.style.stroke=base+'.85)';p.style.strokeWidth='2.5';p.style.opacity='1';}
+        else{p.style.opacity='.04'}
       });
     });
     g.addEventListener('mouseleave',()=>{
       allNodes.forEach(g2=>{g2.style.opacity='1';g2.querySelector('rect').style.strokeWidth='1';g2.querySelector('rect').style.filter='none'});
-      allLinks.forEach(p=>{
-        p.style.stroke=p.getAttribute('data-type')==='produces'?'rgba(200,136,90,.2)':'rgba(160,120,200,.2)';
-        p.style.strokeWidth='1.2';p.style.opacity='1';
-      });
+      allLinks.forEach(p=>{const base=LINK_COLORS[p.getAttribute('data-type')]||'rgba(255,255,255,';p.style.stroke=base+'.18)';p.style.strokeWidth='1';p.style.opacity='1'});
     });
-    /* click for info */
     g.addEventListener('click',()=>{
       const info=document.getElementById('traceInfo');
       const type=nodeType[nid];
-      if(type==='farm'){
-        const fname=nid.replace('f_','');
-        const fm=farmMap.find(x=>x.id===fname);
-        const linkedBrands=[...downstream[nid]].map(b=>b.replace('b_','').replace(/_/g,' ')).join(', ');
-        info.innerHTML=`농장: <strong style="color:var(--text)">${fname.replace('Farm_','').replace(/_/g,' ')}</strong> &nbsp;|&nbsp; ${fm?fm.country+' · CO₂: '+fm.co2+' kg/kg':''} &nbsp;|&nbsp; 브랜드: ${linkedBrands}`;
-      }else if(type==='brand'){
-        const bname=nid.replace('b_','');
-        const linkedMenus=[...downstream[nid]].map(m=>m.replace('m_','').replace(/_/g,' ')).join(', ');
-        const linkedFarms=[...upstream[nid]].map(f=>f.replace('f_Farm_','').replace(/_/g,' ')).join(', ');
-        info.innerHTML=`브랜드: <strong style="color:var(--text)">${bname.replace(/_/g,' ')}</strong> &nbsp;|&nbsp; 농장: ${linkedFarms} &nbsp;|&nbsp; 메뉴: ${linkedMenus}`;
-      }else{
-        const mname=nid.replace('m_','');
-        const linkedBrands=[...upstream[nid]].map(b=>b.replace('b_','').replace(/_/g,' ')).join(', ');
-        info.innerHTML=`메뉴: <strong style="color:var(--text)">${mname.replace(/_/g,' ')}</strong> &nbsp;|&nbsp; 사용 브랜드: ${linkedBrands}`;
-      }
+      const up=[...(upstream[nid]||[])].map(id=>{const parts=id.split('_');return id.replace(/^[a-z]_/,'').replace(/Farm_/,'').replace(/_/g,' ')}).join(', ');
+      const dn=[...(downstream[nid]||[])].map(id=>id.replace(/^[a-z]_/,'').replace(/Farm_/,'').replace(/_/g,' ')).join(', ');
+      const label=nid.replace(/^[a-z]_/,'').replace(/Farm_/,'').replace(/_/g,' ');
+      info.innerHTML=`<strong style="color:${COLORS[type]}">${HEADERS[TYPES.indexOf(type)]}</strong>: <strong style="color:var(--text)">${label}</strong>${up?' &nbsp;← '+up:''}${dn?' &nbsp;→ '+dn:''}`;
     });
   });
 }
@@ -668,7 +650,7 @@ fetch('coffeeland_data.json').then(r=>r.json()).then(data=>{
   renderESG(data.brands);
   renderBrands(data.brands);
   renderFlow(data.flow_nodes,data.flow_links);
-  renderTraceFlow(data.trace, data.farm_map);
+  renderTraceFlow(data.trace, data.farm_map, data.port_map, data.warehouses, data.farm_port_map);
   renderTrace(data.trace);
 }).catch(e=>{
   document.querySelector('.main').innerHTML=`<div style="text-align:center;padding:3rem;color:var(--text3)">coffeeland_data.json 파일을 같은 폴더에 넣어주세요<br><small>${e.message}</small></div>`;

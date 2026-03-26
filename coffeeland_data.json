@@ -6,7 +6,8 @@
     "countries": 18,
     "chains": 23,
     "triples": 3500,
-    "ports": 15
+    "ports": 15,
+    "warehouses": 15
   },
   "farm_map": [
     {
@@ -391,6 +392,38 @@
       "label": "Felixstowe"
     }
   ],
+  "warehouses": [
+    {"id": "WH_Santos_A", "label": "Santos Storage", "country": "Brazil", "port": "Port_Santos"},
+    {"id": "WH_Mombasa_Central", "label": "Mombasa Central", "country": "Kenya", "port": "Port_Mombasa"},
+    {"id": "WH_HoChiMinh_D7", "label": "HCMC Warehouse", "country": "Vietnam", "port": "Port_HoChiMinh"},
+    {"id": "WH_Singapore_West", "label": "Singapore Hub", "country": "Singapore", "port": "Port_Singapore"},
+    {"id": "WH_Rotterdam_West", "label": "Rotterdam Terminal", "country": "Netherlands", "port": "Port_Rotterdam"},
+    {"id": "WH_Hamburg_Central", "label": "Hamburg Hub", "country": "Germany", "port": "Port_Hamburg"},
+    {"id": "WH_LongBeach_South", "label": "Long Beach Facility", "country": "USA", "port": "Port_LongBeach"},
+    {"id": "WH_NewOrleans_CBD", "label": "New Orleans Depot", "country": "USA", "port": "Port_NewOrleans"},
+    {"id": "WH_Genoa_Harbor", "label": "Genoa Storage", "country": "Italy", "port": "Port_Genoa"},
+    {"id": "WH_Sydney_South", "label": "Sydney Warehouse", "country": "Australia", "port": "Port_Sydney"},
+    {"id": "WH_Tokyo_Bay", "label": "Tokyo Terminal", "country": "Japan", "port": "Port_Tokyo"},
+    {"id": "WH_Busan_Port", "label": "Busan Storage", "country": "South Korea", "port": "Port_Busan"},
+    {"id": "WH_Antwerp_North", "label": "Antwerp Warehouse", "country": "Belgium", "port": "Port_Antwerp"},
+    {"id": "WH_Felixstowe_East", "label": "Felixstowe Depot", "country": "UK", "port": "Port_Felixstowe"},
+    {"id": "WH_Valencia_Ind", "label": "Valencia Center", "country": "Spain", "port": "Port_Valencia"}
+  ],
+  "farm_port_map": {
+    "Colombia": "Port_Santos",
+    "Brazil": "Port_Santos",
+    "Peru": "Port_Santos",
+    "Costa Rica": "Port_NewOrleans",
+    "Guatemala": "Port_NewOrleans",
+    "Honduras": "Port_NewOrleans",
+    "Nicaragua": "Port_NewOrleans",
+    "Ethiopia": "Port_Mombasa",
+    "Kenya": "Port_Mombasa",
+    "Tanzania": "Port_Mombasa",
+    "Rwanda": "Port_Mombasa",
+    "Indonesia": "Port_Singapore",
+    "Vietnam": "Port_HoChiMinh"
+  },
   "brands": [
     {
       "name": "Yirgacheffe Special",
@@ -1800,7 +1833,28 @@
       "brand": "Huila_Reserve",
       "farm": "Farm_Huila_El_Paraiso_Farm",
       "country": "Colombia"
-    }
+    },
+    {"menu": "Espresso", "brand": "Antigua_Premium", "farm": "Farm_Antigua_Finca_El_Injerto", "country": "Guatemala"},
+    {"menu": "Pour_Over", "brand": "Antigua_Premium", "farm": "Farm_Antigua_Finca_El_Injerto", "country": "Guatemala"},
+    {"menu": "Cortado", "brand": "Antigua_Premium", "farm": "Farm_Huehuetenango_Finca_Vista_Hermosa", "country": "Guatemala"},
+    {"menu": "Flat_White", "brand": "Tarrazu_Reserve", "farm": "Farm_West_Valley_Helsar_Farm", "country": "Costa Rica"},
+    {"menu": "Macchiato", "brand": "Tarrazu_Reserve", "farm": "Farm_West_Valley_Helsar_Farm", "country": "Costa Rica"},
+    {"menu": "Pour_Over", "brand": "Tarrazu_Reserve", "farm": "Farm_Tarrazu_La_Minita_Farm", "country": "Costa Rica"},
+    {"menu": "Americano", "brand": "Santos_Premium", "farm": "Farm_Sao_Paulo_Fazenda_Ipe", "country": "Brazil"},
+    {"menu": "French_Press", "brand": "Santos_Premium", "farm": "Farm_Sao_Paulo_Fazenda_Ipe", "country": "Brazil"},
+    {"menu": "Cold_Brew", "brand": "Santos_Premium", "farm": "Farm_Minas_Gerais_Fazenda_Sertao", "country": "Brazil"},
+    {"menu": "French_Press", "brand": "Java_Estate", "farm": "Farm_Java_Ijen_Estate", "country": "Indonesia"},
+    {"menu": "Affogato", "brand": "Java_Estate", "farm": "Farm_Java_Ijen_Estate", "country": "Indonesia"},
+    {"menu": "Cold_Brew", "brand": "Java_Estate", "farm": "Farm_Lam_Dong_Arabica_Farm", "country": "Vietnam"},
+    {"menu": "Americano", "brand": "Honduras_SHG", "farm": "Farm_Copan_San_Marcos_Farm", "country": "Honduras"},
+    {"menu": "Iced_Americano", "brand": "Honduras_SHG", "farm": "Farm_Copan_San_Marcos_Farm", "country": "Honduras"},
+    {"menu": "Espresso", "brand": "Honduras_SHG", "farm": "Farm_Jinotega_Finca_Mierisch", "country": "Nicaragua"},
+    {"menu": "French_Press", "brand": "Bourbon_Santos", "farm": "Farm_Minas_Gerais_Fazenda_Sertao", "country": "Brazil"},
+    {"menu": "Americano", "brand": "Bourbon_Santos", "farm": "Farm_Minas_Gerais_Fazenda_Sertao", "country": "Brazil"},
+    {"menu": "Mocha", "brand": "Bourbon_Santos", "farm": "Farm_Espirito_Santo_Fazenda_Santa_Rita", "country": "Brazil"},
+    {"menu": "Iced_Mocha", "brand": "Robusta_Select", "farm": "Farm_Dak_Lak_Central_Highlands_Farm", "country": "Vietnam"},
+    {"menu": "Iced_Latte", "brand": "Robusta_Select", "farm": "Farm_Dak_Lak_Central_Highlands_Farm", "country": "Vietnam"},
+    {"menu": "Americano", "brand": "Robusta_Select", "farm": "Farm_Dak_Lak_Central_Highlands_Farm", "country": "Vietnam"}
   ],
   "esg_high": [
     {
