@@ -410,19 +410,19 @@
     {"id": "WH_Valencia_Ind", "label": "Valencia Center", "country": "Spain", "port": "Port_Valencia"}
   ],
   "farm_port_map": {
-    "Colombia": "Port_Santos",
-    "Brazil": "Port_Santos",
-    "Peru": "Port_Santos",
-    "Costa Rica": "Port_NewOrleans",
-    "Guatemala": "Port_NewOrleans",
-    "Honduras": "Port_NewOrleans",
-    "Nicaragua": "Port_NewOrleans",
-    "Ethiopia": "Port_Mombasa",
-    "Kenya": "Port_Mombasa",
-    "Tanzania": "Port_Mombasa",
-    "Rwanda": "Port_Mombasa",
-    "Indonesia": "Port_Singapore",
-    "Vietnam": "Port_HoChiMinh"
+    "Colombia": ["Port_Santos", "Port_NewOrleans", "Port_Rotterdam"],
+    "Brazil": ["Port_Santos", "Port_Hamburg", "Port_Antwerp"],
+    "Peru": ["Port_Santos", "Port_LongBeach"],
+    "Costa Rica": ["Port_NewOrleans", "Port_LongBeach"],
+    "Guatemala": ["Port_NewOrleans", "Port_Valencia"],
+    "Honduras": ["Port_NewOrleans", "Port_Hamburg"],
+    "Nicaragua": ["Port_NewOrleans", "Port_Felixstowe"],
+    "Ethiopia": ["Port_Mombasa", "Port_Genoa", "Port_Antwerp"],
+    "Kenya": ["Port_Mombasa", "Port_Felixstowe", "Port_Rotterdam"],
+    "Tanzania": ["Port_Mombasa", "Port_Hamburg"],
+    "Rwanda": ["Port_Mombasa", "Port_Genoa"],
+    "Indonesia": ["Port_Singapore", "Port_Tokyo", "Port_Sydney", "Port_Busan"],
+    "Vietnam": ["Port_HoChiMinh", "Port_Busan", "Port_Tokyo", "Port_LongBeach"]
   },
   "brands": [
     {

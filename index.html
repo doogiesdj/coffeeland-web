@@ -555,7 +555,7 @@ function renderTraceFlow(trace, farmMap, portMap, warehouses, farmPortMap){
   /* brand↔farm */
   trace.forEach(t=>{addLink('b_'+t.brand,'f_'+t.farm,'brand_farm')});
   /* farm↔port */
-  farmMap.forEach(f=>{const p=farmPortMap[f.country];if(p)addLink('f_'+f.id,'p_'+p,'farm_port')});
+  farmMap.forEach(f=>{const ps=farmPortMap[f.country];if(ps)(Array.isArray(ps)?ps:[ps]).forEach(p=>addLink('f_'+f.id,'p_'+p,'farm_port'))});
   /* port↔warehouse */
   warehouses.forEach(w=>{addLink('p_'+w.port,'w_'+w.id,'port_wh')});
   /* warehouse↔country */
