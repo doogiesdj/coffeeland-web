@@ -425,15 +425,29 @@ function renderFlow(nodes,links){
   const pos={};
   const place=(arr,x)=>arr.forEach((n,i)=>{pos[n.id]={x,y:PAD_TOP+i*ROW_H+ROW_H/2}});
   place(farms,COL.farm);place(brands,COL.brand);place(chains,COL.chain);
-  /* build adjacency map */
-  const adj={};
-  nodes.forEach(n=>{adj[n.id]=new Set()});
-  links.forEach(l=>{if(adj[l.source])adj[l.source].add(l.target);if(adj[l.target])adj[l.target].add(l.source)});
-  /* collect all connected ids (2-hop: farm↔brand↔chain) */
+  /* build directional adjacency: farm→brand (produces), brand→chain (supplies) */
+  const downstream={},upstream={};
+  nodes.forEach(n=>{downstream[n.id]=new Set();upstream[n.id]=new Set()});
+  links.forEach(l=>{if(downstream[l.source])downstream[l.source].add(l.target);if(upstream[l.target])upstream[l.target].add(l.source)});
+  const nodeType={};nodes.forEach(n=>{nodeType[n.id]=n.type});
+  /* collect connected nodes & links following supply chain direction only */
   function getConnected(id){
-    const s=new Set([id]);
-    if(adj[id])adj[id].forEach(nb=>{s.add(nb);if(adj[nb])adj[nb].forEach(nb2=>s.add(nb2))});
-    return s;
+    const connNodes=new Set([id]),connLinks=new Set();
+    const type=nodeType[id];
+    if(type==='farm'){
+      /* farm → brands → chains */
+      downstream[id].forEach(brandId=>{connNodes.add(brandId);connLinks.add(id+'|'+brandId);
+        downstream[brandId].forEach(chainId=>{connNodes.add(chainId);connLinks.add(brandId+'|'+chainId)})});
+    }else if(type==='chain'){
+      /* chain ← brands ← farms */
+      upstream[id].forEach(brandId=>{connNodes.add(brandId);connLinks.add(brandId+'|'+id);
+        upstream[brandId].forEach(farmId=>{connNodes.add(farmId);connLinks.add(farmId+'|'+brandId)})});
+    }else{
+      /* brand: upstream farms + downstream chains */
+      upstream[id].forEach(farmId=>{connNodes.add(farmId);connLinks.add(farmId+'|'+id)});
+      downstream[id].forEach(chainId=>{connNodes.add(chainId);connLinks.add(id+'|'+chainId)});
+    }
+    return{nodes:connNodes,links:connLinks};
   }
   let html='<defs><filter id="glow"><feGaussianBlur stdDeviation="2" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>';
   /* draw paths */
@@ -471,12 +485,13 @@ function renderFlow(nodes,links){
       const conn=getConnected(nid);
       allNodes.forEach(g2=>{
         const id2=g2.getAttribute('data-id');
-        if(conn.has(id2)){g2.style.opacity='1';g2.querySelector('rect').style.strokeWidth='2';if(id2===nid)g2.querySelector('rect').style.filter='url(#glow)';}
+        if(conn.nodes.has(id2)){g2.style.opacity='1';g2.querySelector('rect').style.strokeWidth='2';if(id2===nid)g2.querySelector('rect').style.filter='url(#glow)';}
         else{g2.style.opacity='.15'}
       });
       allLinks.forEach(p=>{
         const src=p.getAttribute('data-source'),tgt=p.getAttribute('data-target');
-        if(conn.has(src)&&conn.has(tgt)){
+        const linkKey=src+'|'+tgt;
+        if(conn.links.has(linkKey)){
           const lt=links.find(l=>l.source===src&&l.target===tgt);
           p.style.stroke=LINK_HI[lt?lt.type:'produces'];p.style.strokeWidth='2.5';p.style.opacity='1';
         }else{p.style.opacity='.06'}
