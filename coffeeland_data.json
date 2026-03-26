@@ -75,7 +75,9 @@
       "lat": -5.2,
       "lng": 35.5,
       "country": "Tanzania",
-      "brands": [],
+      "brands": [
+        "Kenya_AA"
+      ],
       "co2": 3.3,
       "esg": "mid"
     },
@@ -97,7 +99,9 @@
       "lat": 12.6,
       "lng": 108.6,
       "country": "Vietnam",
-      "brands": [],
+      "brands": [
+        "Java_Estate"
+      ],
       "co2": 5.1,
       "esg": "mid"
     },
@@ -131,7 +135,9 @@
       "lat": 8.7,
       "lng": 38.7,
       "country": "Ethiopia",
-      "brands": [],
+      "brands": [
+        "Sidamo_Natural"
+      ],
       "co2": 4.1,
       "esg": "mid"
     },
@@ -141,7 +147,9 @@
       "lat": -14.5,
       "lng": -52.8,
       "country": "Brazil",
-      "brands": [],
+      "brands": [
+        "Bourbon_Santos"
+      ],
       "co2": 7.2,
       "esg": "high"
     },
@@ -151,7 +159,9 @@
       "lat": 12.3,
       "lng": -84.60000000000001,
       "country": "Nicaragua",
-      "brands": [],
+      "brands": [
+        "Honduras_SHG"
+      ],
       "co2": 3.5,
       "esg": "mid"
     },
@@ -197,7 +207,9 @@
       "lat": -2.3,
       "lng": 30.2,
       "country": "Rwanda",
-      "brands": [],
+      "brands": [
+        "Yirgacheffe_Special"
+      ],
       "co2": 2.9,
       "esg": "low"
     },
@@ -398,7 +410,8 @@
         "water": 7
       },
       "farms": [
-        "Yirgacheffe Kochere Farm"
+        "Yirgacheffe Kochere Farm",
+        "Western Province Huye Mountain"
       ],
       "impacts": [
         "Metric_CO2_Low"
@@ -443,7 +456,8 @@
         "water": 6
       },
       "farms": [
-        "Nyeri Gatomboya Farm"
+        "Nyeri Gatomboya Farm",
+        "Kilimanjaro Moshi Estate"
       ],
       "impacts": [
         "Metric_Organic_Farming"
@@ -511,7 +525,8 @@
         "water": 9
       },
       "farms": [
-        "Sidamo Guji Farm"
+        "Sidamo Guji Farm",
+        "Harrar Estate"
       ],
       "impacts": [
         "Metric_CO2_Low"
@@ -579,7 +594,8 @@
         "water": 4
       },
       "farms": [
-        "Java Ijen Estate"
+        "Java Ijen Estate",
+        "Lam Dong Arabica Farm"
       ],
       "impacts": []
     },
@@ -623,7 +639,8 @@
         "water": 6
       },
       "farms": [
-        "Copan San Marcos Farm"
+        "Copan San Marcos Farm",
+        "Jinotega Finca Mierisch"
       ],
       "impacts": []
     },
@@ -644,7 +661,8 @@
         "water": 5
       },
       "farms": [
-        "Minas Gerais Fazenda Sertao"
+        "Minas Gerais Fazenda Sertao",
+        "Espirito Santo Fazenda Santa Rita"
       ],
       "impacts": []
     },
@@ -1087,6 +1105,36 @@
     {
       "source": "farm_Farm_Minas_Gerais_Fazenda_Sertao",
       "target": "brand_Santos_Premium",
+      "type": "produces"
+    },
+    {
+      "source": "farm_Farm_Kilimanjaro_Moshi_Estate",
+      "target": "brand_Kenya_AA",
+      "type": "produces"
+    },
+    {
+      "source": "farm_Farm_Lam_Dong_Arabica_Farm",
+      "target": "brand_Java_Estate",
+      "type": "produces"
+    },
+    {
+      "source": "farm_Farm_Harrar_Estate",
+      "target": "brand_Sidamo_Natural",
+      "type": "produces"
+    },
+    {
+      "source": "farm_Farm_Espirito_Santo_Fazenda_Santa_Rita",
+      "target": "brand_Bourbon_Santos",
+      "type": "produces"
+    },
+    {
+      "source": "farm_Farm_Jinotega_Finca_Mierisch",
+      "target": "brand_Honduras_SHG",
+      "type": "produces"
+    },
+    {
+      "source": "farm_Farm_Western_Province_Huye_Mountain",
+      "target": "brand_Yirgacheffe_Special",
       "type": "produces"
     },
     {
