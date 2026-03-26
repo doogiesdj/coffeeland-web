@@ -226,7 +226,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg3);color:var(
 
   <div class="sec" id="sec-trace">
     <div class="card" style="margin-bottom:14px">
-      <div class="card-title">메뉴 → 브랜드 → 농장 → 포트 → 웨어하우스 → 국가 전체 공급망 추적 (노드 호버 시 연결 경로 하이라이트)</div>
+      <div class="card-title">원두 역추적: 메뉴 → 브랜드 → 소비국WH → Import Broker → 소비국Port → Logistics → 생산국Port → Export Broker → 생산국WH → 농장 → 생산국</div>
       <div style="overflow-x:auto"><svg id="traceSvg"></svg></div>
       <div id="traceInfo" style="margin-top:10px;padding:.7rem 1rem;background:var(--bg3);border-radius:var(--r);font-size:12.5px;color:var(--text2);min-height:44px;border:1px solid var(--border)">
         노드를 클릭하면 상세 정보가 표시됩니다.
@@ -522,118 +522,142 @@ function showFlowInfo(n){
   else{info.innerHTML=`커피 체인: <strong style="color:var(--text)">${n.label}</strong>`;}
 }
 
-function renderTraceFlow(trace, farmMap, portMap, warehouses, farmPortMap){
+function renderTraceFlow(trace, data){
   const svg=document.getElementById('traceSvg');
-  const W=Math.max(svg.parentElement.clientWidth||1200,1000);
-  /* collect unique entities */
+  const W=Math.max(svg.parentElement.clientWidth||1400,1200);
+  /* 11 columns: Menu, Brand, ConsumerWH, ImportBroker, ConsumerPort, Logistics, ProducerPort, ExportBroker, ProducerWH, Farm, Country */
   const menuArr=[...new Set(trace.map(t=>t.menu))].sort();
-  const brandArr=[...new Set(trace.map(t=>t.brand))].sort();
-  const farmArr=farmMap.map(f=>f.id).sort();
-  const portArr=portMap.map(p=>p.id).sort();
-  const whArr=warehouses.map(w=>w.id).sort();
-  const countryArr=[...new Set(warehouses.map(w=>w.country))].sort();
-  const maxCount=Math.max(menuArr.length,brandArr.length,farmArr.length,portArr.length,whArr.length,countryArr.length);
-  const ROW_H=34,PAD_TOP=50,PAD_BOT=20,NW=100,NH=28;
+  const brandArr=data.brands.map(b=>b.id).sort();
+  const cwArr=data.consumer_warehouses.map(w=>w.id).sort();
+  const ibArr=data.import_brokers.map(b=>b.id).sort();
+  const cpArr=data.consumer_ports.map(p=>p.id).sort();
+  const lpArr=data.logistics_providers.map(l=>l.id).sort();
+  const ppArr=data.producer_ports.map(p=>p.id).sort();
+  const ebArr=data.export_brokers.map(b=>b.id).sort();
+  const pwArr=data.producer_warehouses.map(w=>w.id).sort();
+  const farmArr=data.farm_map.map(f=>f.id).sort();
+  const countryArr=[...new Set(data.farm_map.map(f=>f.country))].sort();
+  const COLS=11;
+  const arrs=[menuArr,brandArr,cwArr,ibArr,cpArr,lpArr,ppArr,ebArr,pwArr,farmArr,countryArr];
+  const maxCount=Math.max(...arrs.map(a=>a.length));
+  const ROW_H=32,PAD_TOP=58,PAD_BOT=16,NW=90,NH=26;
   const H=PAD_TOP+maxCount*ROW_H+PAD_BOT;
   svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.setAttribute('width',W);svg.setAttribute('height',H);
   svg.style.background='var(--bg3)';svg.style.borderRadius='8px';
-  const COL=[W*.06, W*.20, W*.38, W*.56, W*.74, W*.92];
-  const TYPES=['menu','brand','farm','port','warehouse','country'];
-  const COLORS={'menu':'#a078c8','brand':'#c8885a','farm':'#5dbb85','port':'#7aabcc','warehouse':'#d4a853','country':'#d97060'};
-  const BGS={'menu':'rgba(160,120,200,.12)','brand':'rgba(200,136,90,.12)','farm':'rgba(93,187,133,.12)','port':'rgba(122,171,204,.12)','warehouse':'rgba(212,168,83,.12)','country':'rgba(217,112,96,.12)'};
-  const HEADERS=['메뉴','브랜드','농장','포트','웨어하우스','국가'];
-  /* position nodes */
-  const pos={},nodeType={};
-  const plc=(arr,col,prefix,type)=>arr.forEach((id,i)=>{const key=prefix+id;pos[key]={x:COL[col],y:PAD_TOP+i*ROW_H+ROW_H/2};nodeType[key]=type});
-  plc(menuArr,0,'m_','menu');plc(brandArr,1,'b_','brand');plc(farmArr,2,'f_','farm');
-  plc(portArr,3,'p_','port');plc(whArr,4,'w_','warehouse');plc(countryArr,5,'c_','country');
-  /* build all links */
+  const colX=Array.from({length:COLS},(_,i)=>W*(0.045+i*0.091));
+  const TYPES=['menu','brand','cw','ib','cp','lp','pp','eb','pw','farm','country'];
+  const CLR=['#a078c8','#c8885a','#d4a853','#e07850','#7aabcc','#50b8a0','#5d8ecc','#cc6688','#bfa040','#5dbb85','#d97060'];
+  const BGS=CLR.map(c=>c+'1e');
+  const HDRS=['메뉴','브랜드','소비WH','Import\nBroker','소비Port','Logistics','생산Port','Export\nBroker','생산WH','농장','생산국'];
+  const prefixes=['m_','b_','cw_','ib_','cp_','lp_','pp_','eb_','pw_','f_','co_'];
+  /* position all nodes */
+  const pos={},nodeType={},nodeCol={};
+  arrs.forEach((arr,ci)=>{
+    arr.forEach((id,ri)=>{
+      const key=prefixes[ci]+id;
+      pos[key]={x:colX[ci],y:PAD_TOP+ri*ROW_H+ROW_H/2};
+      nodeType[key]=TYPES[ci];nodeCol[key]=ci;
+    });
+  });
+  /* build links */
   const linkSet=new Set(),links=[];
-  const addLink=(src,tgt,type)=>{const k=src+'|'+tgt;if(!linkSet.has(k)){linkSet.add(k);links.push({source:src,target:tgt,type})}};
-  /* menu↔brand */
-  trace.forEach(t=>{addLink('m_'+t.menu,'b_'+t.brand,'menu_brand')});
-  /* brand↔farm */
-  trace.forEach(t=>{addLink('b_'+t.brand,'f_'+t.farm,'brand_farm')});
-  /* farm↔port */
-  farmMap.forEach(f=>{const ps=farmPortMap[f.country];if(ps)(Array.isArray(ps)?ps:[ps]).forEach(p=>addLink('f_'+f.id,'p_'+p,'farm_port'))});
-  /* port↔warehouse */
-  warehouses.forEach(w=>{addLink('p_'+w.port,'w_'+w.id,'port_wh')});
-  /* warehouse↔country */
-  warehouses.forEach(w=>{addLink('w_'+w.id,'c_'+w.country,'wh_country')});
+  const addLink=(src,tgt,type)=>{if(!pos[src]||!pos[tgt])return;const k=src+'|'+tgt;if(!linkSet.has(k)){linkSet.add(k);links.push({source:src,target:tgt,type})}};
+  /* 1. menu↔brand */
+  trace.forEach(t=>addLink('m_'+t.menu,'b_'+t.brand,'l'));
+  /* 2. brand↔consumerWH: brand→import broker→consumer WH (flatten: brand→CW via IB) */
+  const ibLookup={};data.import_brokers.forEach(ib=>{ib.brands.forEach(b=>{if(!ibLookup[b])ibLookup[b]=[];ibLookup[b].push(ib.id)})});
+  brandArr.forEach(b=>{const ibs=ibLookup[b]||[];ibs.forEach(ibId=>addLink('b_'+b,'ib_'+ibId,'l'))});
+  /* 3. IB↔consumerWH: assign IB to CW by HQ geography */
+  const hqToCW={'Switzerland':['CW_Rotterdam','CW_Genoa'],'Germany':['CW_Hamburg','CW_Antwerp'],'UK':['CW_Felixstowe'],'Israel':['CW_Valencia','CW_Genoa'],'USA':['CW_LongBeach','CW_NewOrleans']};
+  data.import_brokers.forEach(ib=>{const cws=hqToCW[ib.hq]||['CW_Rotterdam'];cws.forEach(cw=>addLink('ib_'+ib.id,'cw_'+cw,'l'))});
+  /* 4. CW↔CP */
+  data.consumer_warehouses.forEach(cw=>addLink('cw_'+cw.id,'cp_'+cw.port,'l'));
+  /* 5. CP↔LP */
+  data.logistics_providers.forEach(lp=>{lp.to.forEach(cp=>addLink('cp_'+cp,'lp_'+lp.id,'l'))});
+  /* 6. LP↔PP */
+  data.logistics_providers.forEach(lp=>{lp.from.forEach(pp=>addLink('lp_'+lp.id,'pp_'+pp,'l'))});
+  /* 7. PP↔EB */
+  data.export_brokers.forEach(eb=>{eb.ports.forEach(pp=>addLink('pp_'+pp,'eb_'+eb.id,'l'))});
+  /* 8. EB↔PW: EB ports→PW at same port */
+  const ppToPW={};data.producer_warehouses.forEach(pw=>{ppToPW[pw.port]=pw.id});
+  data.export_brokers.forEach(eb=>{eb.ports.forEach(pp=>{const pw=ppToPW[pp];if(pw)addLink('eb_'+eb.id,'pw_'+pw,'l')})});
+  /* 9. PW↔Farm */
+  const countryToPW={};data.producer_warehouses.forEach(pw=>{countryToPW[pw.country]=pw.id});
+  /* map farm country to PW country via export port */
+  data.farm_map.forEach(f=>{
+    const ep=data.farm_export_port[f.country];
+    if(ep){const pw=ppToPW[ep];if(pw)addLink('pw_'+pw,'f_'+f.id,'l')}
+  });
+  /* 10. Farm↔Country */
+  data.farm_map.forEach(f=>addLink('f_'+f.id,'co_'+f.country,'l'));
   /* directional adjacency */
   const downstream={},upstream={};
   Object.keys(pos).forEach(id=>{downstream[id]=new Set();upstream[id]=new Set()});
-  links.forEach(l=>{if(downstream[l.source])downstream[l.source].add(l.target);if(upstream[l.target])upstream[l.target].add(l.source)});
-  /* get connected: walk full chain in both directions */
+  links.forEach(l=>{downstream[l.source].add(l.target);upstream[l.target].add(l.source)});
   function getConnected(id){
     const cn=new Set([id]),cl=new Set();
-    /* walk right (downstream) */
-    const walkDown=(nid)=>{downstream[nid]&&downstream[nid].forEach(nb=>{if(!cn.has(nb)){cn.add(nb);cl.add(nid+'|'+nb);walkDown(nb)}else{cl.add(nid+'|'+nb)}})};
-    /* walk left (upstream) */
-    const walkUp=(nid)=>{upstream[nid]&&upstream[nid].forEach(nb=>{if(!cn.has(nb)){cn.add(nb);cl.add(nb+'|'+nid);walkUp(nb)}else{cl.add(nb+'|'+nid)}})};
+    const walkDown=nid=>{downstream[nid]&&downstream[nid].forEach(nb=>{if(!cn.has(nb)){cn.add(nb);cl.add(nid+'|'+nb);walkDown(nb)}else{cl.add(nid+'|'+nb)}})};
+    const walkUp=nid=>{upstream[nid]&&upstream[nid].forEach(nb=>{if(!cn.has(nb)){cn.add(nb);cl.add(nb+'|'+nid);walkUp(nb)}else{cl.add(nb+'|'+nid)}})};
     walkDown(id);walkUp(id);
     return{nodes:cn,links:cl};
   }
-  const LINK_COLORS={'menu_brand':'rgba(160,120,200,','brand_farm':'rgba(200,136,90,','farm_port':'rgba(93,187,133,','port_wh':'rgba(122,171,204,','wh_country':'rgba(217,112,96,'};
   let html='<defs><filter id="tglow"><feGaussianBlur stdDeviation="2" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>';
   /* draw links */
   links.forEach(l=>{
     const s=pos[l.source],t=pos[l.target];if(!s||!t)return;
-    const mx=(s.x+t.x)/2;const base=LINK_COLORS[l.type]||'rgba(255,255,255,';
-    html+=`<path class="trace-link" data-source="${l.source}" data-target="${l.target}" data-type="${l.type}" d="M${s.x+NW/2+2},${s.y} C${mx},${s.y} ${mx},${t.y} ${t.x-NW/2-2},${t.y}" fill="none" stroke="${base}.18)" stroke-width="1" style="transition:stroke .2s,stroke-width .2s,opacity .2s"/>`;
+    const ci=nodeCol[l.source];const c=CLR[ci]||'#888';
+    const mx=(s.x+t.x)/2;
+    html+=`<path class="trace-link" data-source="${l.source}" data-target="${l.target}" data-col="${ci}" d="M${s.x+NW/2+1},${s.y} C${mx},${s.y} ${mx},${t.y} ${t.x-NW/2-1},${t.y}" fill="none" stroke="${c}30" stroke-width="1" style="transition:stroke .2s,stroke-width .2s,opacity .2s"/>`;
   });
   /* draw nodes */
-  const fmLookup={};farmMap.forEach(f=>{fmLookup[f.id]=f});
-  const pLookup={};portMap.forEach(p=>{pLookup[p.id]=p});
-  const wLookup={};warehouses.forEach(w=>{wLookup[w.id]=w});
-  const drawNode=(id,label,type,extra)=>{
+  const fmL={};data.farm_map.forEach(f=>{fmL[f.id]=f});
+  const drawN=(id,label,ci,extra)=>{
     const p=pos[id];if(!p)return;
-    const c=COLORS[type],bg=BGS[type];
-    const lbl=label.length>14?label.slice(0,13)+'…':label;
+    const c=CLR[ci],bg=BGS[ci];
+    const lbl=label.length>12?label.slice(0,11)+'…':label;
     html+=`<g class="trace-node" data-id="${id}" style="cursor:pointer;transition:opacity .2s">
-      <rect x="${p.x-NW/2}" y="${p.y-NH/2}" width="${NW}" height="${NH}" rx="6" fill="${bg}" stroke="${c}" stroke-width="1" style="transition:fill .2s,stroke-width .2s,filter .15s"/>
-      <text x="${p.x}" y="${p.y+(extra?-2:4)}" text-anchor="middle" font-family="Inter,sans-serif" font-size="9.5" font-weight="500" fill="${c}">${lbl}</text>
-      ${extra?`<text x="${p.x}" y="${p.y+10}" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="8" fill="${c}88">${extra}</text>`:''}
+      <rect x="${p.x-NW/2}" y="${p.y-NH/2}" width="${NW}" height="${NH}" rx="5" fill="${bg}" stroke="${c}" stroke-width="1" style="transition:fill .2s,stroke-width .2s,filter .15s"/>
+      <text x="${p.x}" y="${p.y+(extra?-1:4)}" text-anchor="middle" font-family="Inter,sans-serif" font-size="8.5" font-weight="500" fill="${c}">${lbl}</text>
+      ${extra?`<text x="${p.x}" y="${p.y+9}" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="7" fill="${c}88">${extra}</text>`:''}
     </g>`;
   };
-  menuArr.forEach(m=>drawNode('m_'+m,m.replace(/_/g,' '),'menu',''));
-  brandArr.forEach(b=>drawNode('b_'+b,b.replace(/_/g,' '),'brand',''));
-  farmArr.forEach(f=>{const fm=fmLookup[f];drawNode('f_'+f,f.replace('Farm_','').replace(/_/g,' '),'farm',fm?fm.country:'')});
-  portArr.forEach(p=>{const pm=pLookup[p];drawNode('p_'+p,pm?pm.label:p.replace('Port_',''),'port','')});
-  whArr.forEach(w=>{const wm=wLookup[w];drawNode('w_'+w,wm?wm.label:w,'warehouse',wm?wm.country:'')});
-  countryArr.forEach(c=>drawNode('c_'+c,c.replace(/_/g,' '),'country',''));
+  menuArr.forEach(m=>drawN('m_'+m,m.replace(/_/g,' '),0,''));
+  brandArr.forEach(b=>drawN('b_'+b,b.replace(/_/g,' '),1,''));
+  cwArr.forEach(w=>{const wm=data.consumer_warehouses.find(x=>x.id===w);drawN('cw_'+w,wm?wm.label:w,2,wm?wm.country:'')});
+  ibArr.forEach(b=>{const bm=data.import_brokers.find(x=>x.id===b);drawN('ib_'+b,bm?bm.label:b,3,bm?bm.hq:'')});
+  cpArr.forEach(p=>{const pm=data.consumer_ports.find(x=>x.id===p);drawN('cp_'+p,pm?pm.label:p,4,pm?pm.country:'')});
+  lpArr.forEach(l=>{const lm=data.logistics_providers.find(x=>x.id===l);drawN('lp_'+l,lm?lm.label:l,5,lm?lm.hq:'')});
+  ppArr.forEach(p=>{const pm=data.producer_ports.find(x=>x.id===p);drawN('pp_'+p,pm?pm.label:p,6,pm?pm.country:'')});
+  ebArr.forEach(b=>{const bm=data.export_brokers.find(x=>x.id===b);drawN('eb_'+b,bm?bm.label:b,7,bm?bm.hq:'')});
+  pwArr.forEach(w=>{const wm=data.producer_warehouses.find(x=>x.id===w);drawN('pw_'+w,wm?wm.label:w,8,wm?wm.country:'')});
+  farmArr.forEach(f=>{const fm=fmL[f];drawN('f_'+f,f.replace('Farm_','').replace(/_/g,' '),9,fm?fm.country:'')});
+  countryArr.forEach(c=>drawN('co_'+c,c.replace(/_/g,' '),10,''));
   /* column headers */
-  HEADERS.forEach((t,i)=>{html+=`<text x="${COL[i]}" y="22" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9.5" fill="${COLORS[TYPES[i]]}" letter-spacing=".04em" font-weight="600">${t}</text>`});
+  HDRS.forEach((t,i)=>{
+    const lines=t.split('\n');
+    lines.forEach((ln,li)=>{html+=`<text x="${colX[i]}" y="${16+li*11}" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="8" fill="${CLR[i]}" letter-spacing=".03em" font-weight="600">${ln}</text>`});
+  });
   svg.innerHTML=html;
-  /* hover highlight */
-  const allNodes=svg.querySelectorAll('.trace-node');
-  const allLinks=svg.querySelectorAll('.trace-link');
-  allNodes.forEach(g=>{
+  /* hover */
+  const allN=svg.querySelectorAll('.trace-node'),allL=svg.querySelectorAll('.trace-link');
+  allN.forEach(g=>{
     const nid=g.getAttribute('data-id');
     g.addEventListener('mouseenter',()=>{
       const conn=getConnected(nid);
-      allNodes.forEach(g2=>{
-        const id2=g2.getAttribute('data-id');
-        if(conn.nodes.has(id2)){g2.style.opacity='1';g2.querySelector('rect').style.strokeWidth='2';if(id2===nid)g2.querySelector('rect').style.filter='url(#tglow)';}
-        else{g2.style.opacity='.12'}
-      });
-      allLinks.forEach(p=>{
-        const lk=p.getAttribute('data-source')+'|'+p.getAttribute('data-target');
-        if(conn.links.has(lk)){const base=LINK_COLORS[p.getAttribute('data-type')]||'rgba(255,255,255,';p.style.stroke=base+'.85)';p.style.strokeWidth='2.5';p.style.opacity='1';}
-        else{p.style.opacity='.04'}
-      });
+      allN.forEach(g2=>{const id2=g2.getAttribute('data-id');if(conn.nodes.has(id2)){g2.style.opacity='1';g2.querySelector('rect').style.strokeWidth='2';if(id2===nid)g2.querySelector('rect').style.filter='url(#tglow)'}else{g2.style.opacity='.1'}});
+      allL.forEach(p=>{const lk=p.getAttribute('data-source')+'|'+p.getAttribute('data-target');if(conn.links.has(lk)){const ci=+p.getAttribute('data-col');p.style.stroke=CLR[ci]+'cc';p.style.strokeWidth='2.5';p.style.opacity='1'}else{p.style.opacity='.03'}});
     });
     g.addEventListener('mouseleave',()=>{
-      allNodes.forEach(g2=>{g2.style.opacity='1';g2.querySelector('rect').style.strokeWidth='1';g2.querySelector('rect').style.filter='none'});
-      allLinks.forEach(p=>{const base=LINK_COLORS[p.getAttribute('data-type')]||'rgba(255,255,255,';p.style.stroke=base+'.18)';p.style.strokeWidth='1';p.style.opacity='1'});
+      allN.forEach(g2=>{g2.style.opacity='1';g2.querySelector('rect').style.strokeWidth='1';g2.querySelector('rect').style.filter='none'});
+      allL.forEach(p=>{const ci=+p.getAttribute('data-col');p.style.stroke=CLR[ci]+'30';p.style.strokeWidth='1';p.style.opacity='1'});
     });
     g.addEventListener('click',()=>{
       const info=document.getElementById('traceInfo');
-      const type=nodeType[nid];
-      const up=[...(upstream[nid]||[])].map(id=>{const parts=id.split('_');return id.replace(/^[a-z]_/,'').replace(/Farm_/,'').replace(/_/g,' ')}).join(', ');
-      const dn=[...(downstream[nid]||[])].map(id=>id.replace(/^[a-z]_/,'').replace(/Farm_/,'').replace(/_/g,' ')).join(', ');
-      const label=nid.replace(/^[a-z]_/,'').replace(/Farm_/,'').replace(/_/g,' ');
-      info.innerHTML=`<strong style="color:${COLORS[type]}">${HEADERS[TYPES.indexOf(type)]}</strong>: <strong style="color:var(--text)">${label}</strong>${up?' &nbsp;← '+up:''}${dn?' &nbsp;→ '+dn:''}`;
+      const ci=TYPES.indexOf(nodeType[nid]);
+      const up=[...(upstream[nid]||[])].map(id=>id.replace(/^[a-z]+_/,'').replace(/Farm_/,'').replace(/_/g,' ')).join(', ');
+      const dn=[...(downstream[nid]||[])].map(id=>id.replace(/^[a-z]+_/,'').replace(/Farm_/,'').replace(/_/g,' ')).join(', ');
+      const label=nid.replace(/^[a-z]+_/,'').replace(/Farm_/,'').replace(/_/g,' ');
+      info.innerHTML=`<strong style="color:${CLR[ci]}">${HDRS[ci].replace('\n',' ')}</strong>: <strong style="color:var(--text)">${label}</strong>${up?' &nbsp;← '+up:''}${dn?' &nbsp;→ '+dn:''}`;
     });
   });
 }
@@ -650,7 +674,7 @@ fetch('coffeeland_data.json').then(r=>r.json()).then(data=>{
   renderESG(data.brands);
   renderBrands(data.brands);
   renderFlow(data.flow_nodes,data.flow_links);
-  renderTraceFlow(data.trace, data.farm_map, data.port_map, data.warehouses, data.farm_port_map);
+  renderTraceFlow(data.trace, data);
   renderTrace(data.trace);
 }).catch(e=>{
   document.querySelector('.main').innerHTML=`<div style="text-align:center;padding:3rem;color:var(--text3)">coffeeland_data.json 파일을 같은 폴더에 넣어주세요<br><small>${e.message}</small></div>`;

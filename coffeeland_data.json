@@ -409,6 +409,84 @@
     {"id": "WH_Felixstowe_East", "label": "Felixstowe Depot", "country": "UK", "port": "Port_Felixstowe"},
     {"id": "WH_Valencia_Ind", "label": "Valencia Center", "country": "Spain", "port": "Port_Valencia"}
   ],
+  "producer_ports": [
+    {"id": "PP_Santos", "label": "Santos", "country": "Brazil"},
+    {"id": "PP_Mombasa", "label": "Mombasa", "country": "Kenya"},
+    {"id": "PP_HoChiMinh", "label": "Ho Chi Minh", "country": "Vietnam"},
+    {"id": "PP_TanjungPriok", "label": "Tanjung Priok", "country": "Indonesia"},
+    {"id": "PP_Cartagena", "label": "Cartagena", "country": "Colombia"},
+    {"id": "PP_PuertoCortes", "label": "Puerto Cortés", "country": "Honduras"}
+  ],
+  "consumer_ports": [
+    {"id": "CP_Rotterdam", "label": "Rotterdam", "country": "Netherlands"},
+    {"id": "CP_Hamburg", "label": "Hamburg", "country": "Germany"},
+    {"id": "CP_Antwerp", "label": "Antwerp", "country": "Belgium"},
+    {"id": "CP_LongBeach", "label": "Long Beach", "country": "USA"},
+    {"id": "CP_NewOrleans", "label": "New Orleans", "country": "USA"},
+    {"id": "CP_Genoa", "label": "Genoa", "country": "Italy"},
+    {"id": "CP_Felixstowe", "label": "Felixstowe", "country": "UK"},
+    {"id": "CP_Valencia", "label": "Valencia", "country": "Spain"},
+    {"id": "CP_Tokyo", "label": "Tokyo", "country": "Japan"},
+    {"id": "CP_Busan", "label": "Busan", "country": "South Korea"},
+    {"id": "CP_Sydney", "label": "Sydney", "country": "Australia"},
+    {"id": "CP_Singapore", "label": "Singapore", "country": "Singapore"}
+  ],
+  "producer_warehouses": [
+    {"id": "PW_Santos", "label": "Santos Storage", "country": "Brazil", "port": "PP_Santos"},
+    {"id": "PW_Mombasa", "label": "Mombasa Store", "country": "Kenya", "port": "PP_Mombasa"},
+    {"id": "PW_HoChiMinh", "label": "HCMC Depot", "country": "Vietnam", "port": "PP_HoChiMinh"},
+    {"id": "PW_Jakarta", "label": "Jakarta Depot", "country": "Indonesia", "port": "PP_TanjungPriok"},
+    {"id": "PW_Cartagena", "label": "Cartagena Store", "country": "Colombia", "port": "PP_Cartagena"},
+    {"id": "PW_SanPedroSula", "label": "San Pedro Sula", "country": "Honduras", "port": "PP_PuertoCortes"}
+  ],
+  "consumer_warehouses": [
+    {"id": "CW_Rotterdam", "label": "Rotterdam Terminal", "country": "Netherlands", "port": "CP_Rotterdam"},
+    {"id": "CW_Hamburg", "label": "Hamburg Hub", "country": "Germany", "port": "CP_Hamburg"},
+    {"id": "CW_Antwerp", "label": "Antwerp WH", "country": "Belgium", "port": "CP_Antwerp"},
+    {"id": "CW_LongBeach", "label": "Long Beach Facility", "country": "USA", "port": "CP_LongBeach"},
+    {"id": "CW_NewOrleans", "label": "New Orleans Depot", "country": "USA", "port": "CP_NewOrleans"},
+    {"id": "CW_Genoa", "label": "Genoa Storage", "country": "Italy", "port": "CP_Genoa"},
+    {"id": "CW_Felixstowe", "label": "Felixstowe Depot", "country": "UK", "port": "CP_Felixstowe"},
+    {"id": "CW_Valencia", "label": "Valencia Center", "country": "Spain", "port": "CP_Valencia"},
+    {"id": "CW_Tokyo", "label": "Tokyo Terminal", "country": "Japan", "port": "CP_Tokyo"},
+    {"id": "CW_Busan", "label": "Busan Storage", "country": "South Korea", "port": "CP_Busan"},
+    {"id": "CW_Sydney", "label": "Sydney WH", "country": "Australia", "port": "CP_Sydney"},
+    {"id": "CW_Singapore", "label": "Singapore Hub", "country": "Singapore", "port": "CP_Singapore"}
+  ],
+  "import_brokers": [
+    {"id": "IB_Sucafina", "label": "Sucafina", "hq": "Switzerland", "brands": ["Yirgacheffe_Special","Sidamo_Natural"]},
+    {"id": "IB_Volcafe", "label": "Volcafe", "hq": "Switzerland", "brands": ["Huila_Reserve","Peruvian_Organic"]},
+    {"id": "IB_Neumann", "label": "Neumann Kaffee", "hq": "Germany", "brands": ["Java_Estate","Sumatra_Mandheling"]},
+    {"id": "IB_Falcon", "label": "Falcon Coffees", "hq": "UK", "brands": ["Kenya_AA"]},
+    {"id": "IB_Strauss", "label": "Strauss Coffee", "hq": "Israel", "brands": ["Tarrazu_Reserve","Antigua_Premium","Honduras_SHG"]},
+    {"id": "IB_GreenCoffee", "label": "Green Coffee Traders", "hq": "UK", "brands": ["Colombian_Supremo","Bourbon_Santos","Santos_Premium","Robusta_Select"]}
+  ],
+  "export_brokers": [
+    {"id": "EB_LouisDreyfus", "label": "Louis Dreyfus", "hq": "Netherlands", "brands": ["Santos_Premium","Bourbon_Santos"], "ports": ["PP_Santos"]},
+    {"id": "EB_Mercon", "label": "Mercon Group", "hq": "Netherlands", "brands": ["Colombian_Supremo","Huila_Reserve"], "ports": ["PP_Cartagena","PP_Santos"]},
+    {"id": "EB_Olam", "label": "Olam Int'l", "hq": "Singapore", "brands": ["Java_Estate","Sumatra_Mandheling"], "ports": ["PP_TanjungPriok"]},
+    {"id": "EB_ECOM", "label": "ECOM Agro", "hq": "Switzerland", "brands": ["Antigua_Premium","Honduras_SHG"], "ports": ["PP_PuertoCortes"]},
+    {"id": "EB_AgroTrade", "label": "Agro Trade Inc", "hq": "Colombia", "brands": ["Robusta_Select","Peruvian_Organic","Yirgacheffe_Special","Sidamo_Natural","Kenya_AA","Tarrazu_Reserve"], "ports": ["PP_HoChiMinh","PP_Santos","PP_Mombasa","PP_PuertoCortes"]}
+  ],
+  "logistics_providers": [
+    {"id": "LP_GlobalBean", "label": "Global Bean Logistics", "hq": "USA", "from": ["PP_Santos","PP_Mombasa","PP_HoChiMinh","PP_Cartagena","PP_PuertoCortes"], "to": ["CP_LongBeach","CP_NewOrleans","CP_Rotterdam","CP_Hamburg","CP_Felixstowe"]},
+    {"id": "LP_Mitsubishi", "label": "Mitsubishi Corp", "hq": "Japan", "from": ["PP_Santos","PP_Mombasa","PP_TanjungPriok","PP_HoChiMinh"], "to": ["CP_Tokyo","CP_Busan","CP_Sydney","CP_Singapore","CP_Genoa","CP_Antwerp","CP_Valencia"]}
+  ],
+  "farm_export_port": {
+    "Colombia": "PP_Cartagena",
+    "Brazil": "PP_Santos",
+    "Peru": "PP_Santos",
+    "Costa Rica": "PP_PuertoCortes",
+    "Guatemala": "PP_PuertoCortes",
+    "Honduras": "PP_PuertoCortes",
+    "Nicaragua": "PP_PuertoCortes",
+    "Ethiopia": "PP_Mombasa",
+    "Kenya": "PP_Mombasa",
+    "Tanzania": "PP_Mombasa",
+    "Rwanda": "PP_Mombasa",
+    "Indonesia": "PP_TanjungPriok",
+    "Vietnam": "PP_HoChiMinh"
+  },
   "farm_port_map": {
     "Colombia": ["Port_Santos", "Port_NewOrleans", "Port_Rotterdam"],
     "Brazil": ["Port_Santos", "Port_Hamburg", "Port_Antwerp"],
