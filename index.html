@@ -216,8 +216,8 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg3);color:var(
 
   <div class="sec" id="sec-flow">
     <div class="card">
-      <div class="card-title">Farm → Brand → Chain 공급망 흐름도 (노드 클릭 시 상세 정보)</div>
-      <div style="overflow-x:auto"><svg id="flowSvg" height="520"></svg></div>
+      <div class="card-title">Farm → Brand → Chain 공급망 흐름도 (노드에 마우스를 올리면 연결 경로 하이라이트)</div>
+      <div style="overflow-x:auto"><svg id="flowSvg"></svg></div>
       <div id="flowInfo" style="margin-top:10px;padding:.7rem 1rem;background:var(--bg3);border-radius:var(--r);font-size:12.5px;color:var(--text2);min-height:44px;border:1px solid var(--border)">
         노드를 클릭하면 상세 정보가 표시됩니다.
       </div>
@@ -412,38 +412,85 @@ function renderBrands(brands){
 
 function renderFlow(nodes,links){
   const svg=document.getElementById('flowSvg');
-  const W=Math.max(svg.parentElement.clientWidth||900,700),H=520;
-  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.setAttribute('width',W);
-  svg.style.background='var(--bg3)';svg.style.borderRadius='8px';
+  const W=Math.max(svg.parentElement.clientWidth||900,700);
   const farms=nodes.filter(n=>n.type==='farm'),brands=nodes.filter(n=>n.type==='brand'),chains=nodes.filter(n=>n.type==='chain');
+  const maxCount=Math.max(farms.length,brands.length,chains.length);
+  const ROW_H=36,PAD_TOP=50,PAD_BOT=20;
+  const H=PAD_TOP+maxCount*ROW_H+PAD_BOT;
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.setAttribute('width',W);svg.setAttribute('height',H);
+  svg.style.background='var(--bg3)';svg.style.borderRadius='8px';
   const COL={farm:W*.12,brand:W*.5,chain:W*.88};
   const STROKE={farm:'#5dbb85',brand:'#c8885a',chain:'#7aabcc'};
   const BG={farm:'rgba(93,187,133,.12)',brand:'rgba(200,136,90,.12)',chain:'rgba(122,171,204,.12)'};
   const pos={};
-  const place=(arr,x)=>arr.forEach((n,i)=>{pos[n.id]={x,y:50+i*(H-70)/Math.max(arr.length-1,1)}});
+  const place=(arr,x)=>arr.forEach((n,i)=>{pos[n.id]={x,y:PAD_TOP+i*ROW_H+ROW_H/2}});
   place(farms,COL.farm);place(brands,COL.brand);place(chains,COL.chain);
-  let html='';
-  links.forEach(l=>{
+  /* build adjacency map */
+  const adj={};
+  nodes.forEach(n=>{adj[n.id]=new Set()});
+  links.forEach(l=>{if(adj[l.source])adj[l.source].add(l.target);if(adj[l.target])adj[l.target].add(l.source)});
+  /* collect all connected ids (2-hop: farm↔brand↔chain) */
+  function getConnected(id){
+    const s=new Set([id]);
+    if(adj[id])adj[id].forEach(nb=>{s.add(nb);if(adj[nb])adj[nb].forEach(nb2=>s.add(nb2))});
+    return s;
+  }
+  let html='<defs><filter id="glow"><feGaussianBlur stdDeviation="2" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>';
+  /* draw paths */
+  links.forEach((l,i)=>{
     const s=pos[l.source],t=pos[l.target];if(!s||!t)return;
     const mx=(s.x+t.x)/2;
-    html+=`<path d="M${s.x+58},${s.y} C${mx},${s.y} ${mx},${t.y} ${t.x-58},${t.y}" fill="none" stroke="${l.type==='produces'?'rgba(200,136,90,.35)':'rgba(122,171,204,.35)'}" stroke-width="1.2"/>`;
+    const sc=l.type==='produces'?'rgba(200,136,90,.2)':'rgba(122,171,204,.2)';
+    html+=`<path class="flow-link" data-source="${l.source}" data-target="${l.target}" d="M${s.x+58},${s.y} C${mx},${s.y} ${mx},${t.y} ${t.x-58},${t.y}" fill="none" stroke="${sc}" stroke-width="1.2" style="transition:stroke .2s,stroke-width .2s,opacity .2s"/>`;
   });
+  /* draw nodes */
   nodes.forEach(n=>{
     const p=pos[n.id];if(!p)return;
     const c=STROKE[n.type],bg=BG[n.type];
     const lbl=n.label.length>16?n.label.slice(0,15)+'…':n.label;
     const ex=n.type==='farm'?`CO₂: ${n.co2}`:n.type==='brand'?`$${n.price?.toFixed(2)||'—'}`:'';
     const nd=JSON.stringify(n).replace(/&/g,'&amp;').replace(/"/g,'&quot;');
-    html+=`<g class="flow-node" onclick='showFlowInfo(${nd})'>
-      <rect x="${p.x-56}" y="${p.y-15}" width="112" height="30" rx="7" fill="${bg}" stroke="${c}" stroke-width="1"/>
+    html+=`<g class="flow-node" data-id="${n.id}" onclick='showFlowInfo(${nd})' style="transition:opacity .2s">
+      <rect x="${p.x-56}" y="${p.y-15}" width="112" height="30" rx="7" fill="${bg}" stroke="${c}" stroke-width="1" style="transition:fill .2s,stroke-width .2s,filter .15s"/>
       <text x="${p.x}" y="${p.y-2}" text-anchor="middle" font-family="Inter,sans-serif" font-size="10.5" font-weight="500" fill="${c}">${lbl}</text>
       ${ex?`<text x="${p.x}" y="${p.y+10}" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="${c}99">${ex}</text>`:''}
     </g>`;
   });
+  /* column headers */
   [['농장 (Farm)',COL.farm,'#5dbb85'],['브랜드 (Brand)',COL.brand,'#c8885a'],['체인 (Chain)',COL.chain,'#7aabcc']].forEach(([t,x,c])=>{
     html+=`<text x="${x}" y="24" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="${c}" letter-spacing=".04em">${t}</text>`;
   });
   svg.innerHTML=html;
+  /* hover highlight */
+  const allNodes=svg.querySelectorAll('.flow-node');
+  const allLinks=svg.querySelectorAll('.flow-link');
+  const LINK_HI={produces:'rgba(200,136,90,.85)',supplies:'rgba(122,171,204,.85)'};
+  allNodes.forEach(g=>{
+    const nid=g.getAttribute('data-id');
+    g.addEventListener('mouseenter',()=>{
+      const conn=getConnected(nid);
+      allNodes.forEach(g2=>{
+        const id2=g2.getAttribute('data-id');
+        if(conn.has(id2)){g2.style.opacity='1';g2.querySelector('rect').style.strokeWidth='2';if(id2===nid)g2.querySelector('rect').style.filter='url(#glow)';}
+        else{g2.style.opacity='.15'}
+      });
+      allLinks.forEach(p=>{
+        const src=p.getAttribute('data-source'),tgt=p.getAttribute('data-target');
+        if(conn.has(src)&&conn.has(tgt)){
+          const lt=links.find(l=>l.source===src&&l.target===tgt);
+          p.style.stroke=LINK_HI[lt?lt.type:'produces'];p.style.strokeWidth='2.5';p.style.opacity='1';
+        }else{p.style.opacity='.06'}
+      });
+    });
+    g.addEventListener('mouseleave',()=>{
+      allNodes.forEach(g2=>{g2.style.opacity='1';g2.querySelector('rect').style.strokeWidth='1';g2.querySelector('rect').style.filter='none'});
+      allLinks.forEach(p=>{
+        const lt=links.find(l=>l.source===p.getAttribute('data-source')&&l.target===p.getAttribute('data-target'));
+        p.style.stroke=lt&&lt.type==='produces'?'rgba(200,136,90,.2)':'rgba(122,171,204,.2)';
+        p.style.strokeWidth='1.2';p.style.opacity='1';
+      });
+    });
+  });
 }
 
 function showFlowInfo(n){
