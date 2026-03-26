@@ -548,7 +548,7 @@ function renderTraceFlow(trace, data){
   const TYPES=['menu','brand','cw','ib','cp','lp','pp','eb','pw','farm','country'];
   const CLR=['#a078c8','#c8885a','#d4a853','#e07850','#7aabcc','#50b8a0','#5d8ecc','#cc6688','#bfa040','#5dbb85','#d97060'];
   const BGS=CLR.map(c=>c+'1e');
-  const HDRS=['메뉴','브랜드','소비WH','Import\nBroker','소비Port','Logistics','생산Port','Export\nBroker','생산WH','농장','생산국'];
+  const HDRS=['메뉴','브랜드','소비국WH','Import\nBroker','소비국Port','Logistics','생산국Port','Export\nBroker','생산국WH','농장','생산국'];
   const prefixes=['m_','b_','cw_','ib_','cp_','lp_','pp_','eb_','pw_','f_','co_'];
   /* position all nodes */
   const pos={},nodeType={},nodeCol={};
@@ -559,36 +559,43 @@ function renderTraceFlow(trace, data){
       nodeType[key]=TYPES[ci];nodeCol[key]=ci;
     });
   });
-  /* build links */
+  /* build links: follow column order L→R: Menu→Brand→CW→IB→CP→LP→PP→EB→PW→Farm→Country */
   const linkSet=new Set(),links=[];
   const addLink=(src,tgt,type)=>{if(!pos[src]||!pos[tgt])return;const k=src+'|'+tgt;if(!linkSet.has(k)){linkSet.add(k);links.push({source:src,target:tgt,type})}};
-  /* 1. menu↔brand */
+  /* IB lookup: brand→IB ids */
+  const ibByBrand={};data.import_brokers.forEach(ib=>{ib.brands.forEach(b=>{if(!ibByBrand[b])ibByBrand[b]=[];ibByBrand[b].push(ib.id)})});
+  /* IB→CW mapping by HQ geography */
+  const ibToCW={'IB_Sucafina':['CW_Rotterdam','CW_Genoa','CW_Tokyo'],'IB_Volcafe':['CW_Rotterdam','CW_Antwerp','CW_NewOrleans'],'IB_Neumann':['CW_Hamburg','CW_Antwerp','CW_Busan'],'IB_Falcon':['CW_Felixstowe','CW_Sydney'],'IB_Strauss':['CW_Valencia','CW_Genoa','CW_Singapore'],'IB_GreenCoffee':['CW_Felixstowe','CW_LongBeach','CW_NewOrleans']};
+  /* IB→CP mapping (IB operates through these consumer ports) */
+  const ibToCP={'IB_Sucafina':['CP_Rotterdam','CP_Genoa','CP_Tokyo'],'IB_Volcafe':['CP_Rotterdam','CP_Antwerp','CP_NewOrleans'],'IB_Neumann':['CP_Hamburg','CP_Antwerp','CP_Busan'],'IB_Falcon':['CP_Felixstowe','CP_Sydney'],'IB_Strauss':['CP_Valencia','CP_Genoa','CP_Singapore'],'IB_GreenCoffee':['CP_Felixstowe','CP_LongBeach','CP_NewOrleans']};
+  /* 1. Menu → Brand */
   trace.forEach(t=>addLink('m_'+t.menu,'b_'+t.brand,'l'));
-  /* 2. brand↔consumerWH: brand→import broker→consumer WH (flatten: brand→CW via IB) */
-  const ibLookup={};data.import_brokers.forEach(ib=>{ib.brands.forEach(b=>{if(!ibLookup[b])ibLookup[b]=[];ibLookup[b].push(ib.id)})});
-  brandArr.forEach(b=>{const ibs=ibLookup[b]||[];ibs.forEach(ibId=>addLink('b_'+b,'ib_'+ibId,'l'))});
-  /* 3. IB↔consumerWH: assign IB to CW by HQ geography */
-  const hqToCW={'Switzerland':['CW_Rotterdam','CW_Genoa'],'Germany':['CW_Hamburg','CW_Antwerp'],'UK':['CW_Felixstowe'],'Israel':['CW_Valencia','CW_Genoa'],'USA':['CW_LongBeach','CW_NewOrleans']};
-  data.import_brokers.forEach(ib=>{const cws=hqToCW[ib.hq]||['CW_Rotterdam'];cws.forEach(cw=>addLink('ib_'+ib.id,'cw_'+cw,'l'))});
-  /* 4. CW↔CP */
-  data.consumer_warehouses.forEach(cw=>addLink('cw_'+cw.id,'cp_'+cw.port,'l'));
-  /* 5. CP↔LP */
+  /* 2. Brand → CW: via IB's warehouse assignments */
+  brandArr.forEach(b=>{
+    const ibs=ibByBrand[b]||[];
+    const cwSet=new Set();
+    ibs.forEach(ibId=>{(ibToCW[ibId]||[]).forEach(cw=>cwSet.add(cw))});
+    cwSet.forEach(cw=>addLink('b_'+b,'cw_'+cw,'l'));
+  });
+  /* 3. CW → IB */
+  data.import_brokers.forEach(ib=>{(ibToCW[ib.id]||[]).forEach(cw=>addLink('cw_'+cw,'ib_'+ib.id,'l'))});
+  /* 4. IB → CP */
+  data.import_brokers.forEach(ib=>{(ibToCP[ib.id]||[]).forEach(cp=>addLink('ib_'+ib.id,'cp_'+cp,'l'))});
+  /* 5. CP → LP */
   data.logistics_providers.forEach(lp=>{lp.to.forEach(cp=>addLink('cp_'+cp,'lp_'+lp.id,'l'))});
-  /* 6. LP↔PP */
+  /* 6. LP → PP */
   data.logistics_providers.forEach(lp=>{lp.from.forEach(pp=>addLink('lp_'+lp.id,'pp_'+pp,'l'))});
-  /* 7. PP↔EB */
+  /* 7. PP → EB */
   data.export_brokers.forEach(eb=>{eb.ports.forEach(pp=>addLink('pp_'+pp,'eb_'+eb.id,'l'))});
-  /* 8. EB↔PW: EB ports→PW at same port */
+  /* 8. EB → PW */
   const ppToPW={};data.producer_warehouses.forEach(pw=>{ppToPW[pw.port]=pw.id});
   data.export_brokers.forEach(eb=>{eb.ports.forEach(pp=>{const pw=ppToPW[pp];if(pw)addLink('eb_'+eb.id,'pw_'+pw,'l')})});
-  /* 9. PW↔Farm */
-  const countryToPW={};data.producer_warehouses.forEach(pw=>{countryToPW[pw.country]=pw.id});
-  /* map farm country to PW country via export port */
+  /* 9. PW → Farm */
   data.farm_map.forEach(f=>{
     const ep=data.farm_export_port[f.country];
     if(ep){const pw=ppToPW[ep];if(pw)addLink('pw_'+pw,'f_'+f.id,'l')}
   });
-  /* 10. Farm↔Country */
+  /* 10. Farm → Country */
   data.farm_map.forEach(f=>addLink('f_'+f.id,'co_'+f.country,'l'));
   /* directional adjacency */
   const downstream={},upstream={};
