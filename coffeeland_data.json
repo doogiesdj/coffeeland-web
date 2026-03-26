@@ -943,72 +943,140 @@
     {
       "id": "chain_Peet_Coffee",
       "label": "Peet Coffee",
-      "type": "chain"
+      "type": "chain",
+      "country": "USA"
     },
     {
       "id": "chain_Caribou_Coffee",
       "label": "Caribou Coffee",
-      "type": "chain"
+      "type": "chain",
+      "country": "USA"
     },
     {
       "id": "chain_Dunkin_Donuts",
       "label": "Dunkin Donuts",
-      "type": "chain"
+      "type": "chain",
+      "country": "USA"
     },
     {
       "id": "chain_Luckin_Coffee",
       "label": "Luckin Coffee",
-      "type": "chain"
+      "type": "chain",
+      "country": "China"
     },
     {
       "id": "chain_McCafe",
       "label": "McCafe",
-      "type": "chain"
+      "type": "chain",
+      "country": "USA"
     },
     {
       "id": "chain_Starbucks",
       "label": "Starbucks",
-      "type": "chain"
+      "type": "chain",
+      "country": "USA"
     },
     {
       "id": "chain_Lavazza",
       "label": "Lavazza",
-      "type": "chain"
+      "type": "chain",
+      "country": "Italy"
     },
     {
       "id": "chain_Caffe_Nero",
       "label": "Caffe Nero",
-      "type": "chain"
+      "type": "chain",
+      "country": "UK"
     },
     {
       "id": "chain_Costa_Coffee",
       "label": "Costa Coffee",
-      "type": "chain"
+      "type": "chain",
+      "country": "UK"
     },
     {
       "id": "chain_Blue_Bottle",
       "label": "Blue Bottle",
-      "type": "chain"
+      "type": "chain",
+      "country": "USA"
     },
     {
       "id": "chain_Philz_Coffee",
       "label": "Philz Coffee",
-      "type": "chain"
+      "type": "chain",
+      "country": "USA"
     },
     {
       "id": "chain_Intelligentsia_Coffee",
       "label": "Intelligentsia Coffee",
-      "type": "chain"
+      "type": "chain",
+      "country": "USA"
     },
     {
       "id": "chain_Coffee_Project_NY",
       "label": "Coffee Project NY",
-      "type": "chain"
+      "type": "chain",
+      "country": "USA"
     },
     {
       "id": "chain_Tim_Hortons",
       "label": "Tim Hortons",
-      "type": "chain"
+      "type": "chain",
+      "country": "Canada"
+    },
+    {
+      "id": "chain_Doutor_Coffee",
+      "label": "Doutor Coffee",
+      "type": "chain",
+      "country": "Japan"
+    },
+    {
+      "id": "chain_A_Twosome_Place",
+      "label": "A Twosome Place",
+      "type": "chain",
+      "country": "South Korea"
+    },
+    {
+      "id": "chain_The_Coffee_Bean",
+      "label": "The Coffee Bean & Tea Leaf",
+      "type": "chain",
+      "country": "USA"
+    },
+    {
+      "id": "chain_Mega_Coffee",
+      "label": "Mega Coffee",
+      "type": "chain",
+      "country": "South Korea"
+    },
+    {
+      "id": "chain_Ediya_Coffee",
+      "label": "Ediya Coffee",
+      "type": "chain",
+      "country": "South Korea"
+    },
+    {
+      "id": "chain_Paiks_Coffee",
+      "label": "Paik's Coffee",
+      "type": "chain",
+      "country": "South Korea"
+    },
+    {
+      "id": "chain_Hollys_Coffee",
+      "label": "Hollys Coffee",
+      "type": "chain",
+      "country": "South Korea"
+    },
+    {
+      "id": "chain_Gloria_Jeans",
+      "label": "Gloria Jeans",
+      "type": "chain",
+      "country": "Australia"
+    },
+    {
+      "id": "chain_Compose_Coffee",
+      "label": "Compose Coffee",
+      "type": "chain",
+      "country": "South Korea"
     }
   ],
   "flow_links": [
@@ -1315,6 +1383,126 @@
     {
       "source": "brand_Huila_Reserve",
       "target": "chain_Peet_Coffee",
+      "type": "supplies"
+    },
+    {
+      "source": "brand_Java_Estate",
+      "target": "chain_Doutor_Coffee",
+      "type": "supplies"
+    },
+    {
+      "source": "brand_Santos_Premium",
+      "target": "chain_Doutor_Coffee",
+      "type": "supplies"
+    },
+    {
+      "source": "brand_Colombian_Supremo",
+      "target": "chain_A_Twosome_Place",
+      "type": "supplies"
+    },
+    {
+      "source": "brand_Antigua_Premium",
+      "target": "chain_A_Twosome_Place",
+      "type": "supplies"
+    },
+    {
+      "source": "brand_Kenya_AA",
+      "target": "chain_The_Coffee_Bean",
+      "type": "supplies"
+    },
+    {
+      "source": "brand_Sumatra_Mandheling",
+      "target": "chain_The_Coffee_Bean",
+      "type": "supplies"
+    },
+    {
+      "source": "brand_Yirgacheffe_Special",
+      "target": "chain_The_Coffee_Bean",
+      "type": "supplies"
+    },
+    {
+      "source": "brand_Robusta_Select",
+      "target": "chain_Mega_Coffee",
+      "type": "supplies"
+    },
+    {
+      "source": "brand_Honduras_SHG",
+      "target": "chain_Mega_Coffee",
+      "type": "supplies"
+    },
+    {
+      "source": "brand_Santos_Premium",
+      "target": "chain_Mega_Coffee",
+      "type": "supplies"
+    },
+    {
+      "source": "brand_Colombian_Supremo",
+      "target": "chain_Ediya_Coffee",
+      "type": "supplies"
+    },
+    {
+      "source": "brand_Bourbon_Santos",
+      "target": "chain_Ediya_Coffee",
+      "type": "supplies"
+    },
+    {
+      "source": "brand_Santos_Premium",
+      "target": "chain_Ediya_Coffee",
+      "type": "supplies"
+    },
+    {
+      "source": "brand_Robusta_Select",
+      "target": "chain_Paiks_Coffee",
+      "type": "supplies"
+    },
+    {
+      "source": "brand_Bourbon_Santos",
+      "target": "chain_Paiks_Coffee",
+      "type": "supplies"
+    },
+    {
+      "source": "brand_Antigua_Premium",
+      "target": "chain_Hollys_Coffee",
+      "type": "supplies"
+    },
+    {
+      "source": "brand_Tarrazu_Reserve",
+      "target": "chain_Hollys_Coffee",
+      "type": "supplies"
+    },
+    {
+      "source": "brand_Huila_Reserve",
+      "target": "chain_Hollys_Coffee",
+      "type": "supplies"
+    },
+    {
+      "source": "brand_Sumatra_Mandheling",
+      "target": "chain_Gloria_Jeans",
+      "type": "supplies"
+    },
+    {
+      "source": "brand_Sidamo_Natural",
+      "target": "chain_Gloria_Jeans",
+      "type": "supplies"
+    },
+    {
+      "source": "brand_Colombian_Supremo",
+      "target": "chain_Gloria_Jeans",
+      "type": "supplies"
+    },
+    {
+      "source": "brand_Robusta_Select",
+      "target": "chain_Compose_Coffee",
+      "type": "supplies"
+    },
+    {
+      "source": "brand_Honduras_SHG",
+      "target": "chain_Compose_Coffee",
+      "type": "supplies"
+    },
+    {
+      "source": "brand_Santos_Premium",
+      "target": "chain_Compose_Coffee",
       "type": "supplies"
     }
   ],

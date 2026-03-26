@@ -419,7 +419,7 @@ function renderFlow(nodes,links){
   const H=PAD_TOP+maxCount*ROW_H+PAD_BOT;
   svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.setAttribute('width',W);svg.setAttribute('height',H);
   svg.style.background='var(--bg3)';svg.style.borderRadius='8px';
-  const COL={farm:W*.12,brand:W*.5,chain:W*.88};
+  const COL={farm:W*.1,brand:W*.45,chain:W*.85};
   const STROKE={farm:'#5dbb85',brand:'#c8885a',chain:'#7aabcc'};
   const BG={farm:'rgba(93,187,133,.12)',brand:'rgba(200,136,90,.12)',chain:'rgba(122,171,204,.12)'};
   const pos={};
@@ -462,7 +462,7 @@ function renderFlow(nodes,links){
     const p=pos[n.id];if(!p)return;
     const c=STROKE[n.type],bg=BG[n.type];
     const lbl=n.label.length>16?n.label.slice(0,15)+'…':n.label;
-    const ex=n.type==='farm'?`CO₂: ${n.co2}`:n.type==='brand'?`$${n.price?.toFixed(2)||'—'}`:'';
+    const ex=n.type==='farm'?`CO₂: ${n.co2}`:n.type==='brand'?`$${n.price?.toFixed(2)||'—'}`:n.country||'';
     const nd=JSON.stringify(n).replace(/&/g,'&amp;').replace(/"/g,'&quot;');
     html+=`<g class="flow-node" data-id="${n.id}" onclick='showFlowInfo(${nd})' style="transition:opacity .2s">
       <rect x="${p.x-56}" y="${p.y-15}" width="112" height="30" rx="7" fill="${bg}" stroke="${c}" stroke-width="1" style="transition:fill .2s,stroke-width .2s,filter .15s"/>
