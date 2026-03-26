@@ -391,11 +391,11 @@
         "Organic"
       ],
       "esg": {
-        "co2": 10,
+        "co2": 9,
         "fairTrade": 9,
         "organic": 9,
-        "rainforest": 4,
-        "water": 5
+        "rainforest": 5,
+        "water": 7
       },
       "farms": [
         "Yirgacheffe Kochere Farm"
@@ -415,10 +415,10 @@
       ],
       "esg": {
         "co2": 6,
-        "fairTrade": 3,
-        "organic": 4,
-        "rainforest": 8,
-        "water": 5
+        "fairTrade": 4,
+        "organic": 3,
+        "rainforest": 9,
+        "water": 6
       },
       "farms": [
         "Antigua Finca El Injerto"
@@ -436,11 +436,11 @@
         "Organic"
       ],
       "esg": {
-        "co2": 6,
-        "fairTrade": 9,
-        "organic": 9,
-        "rainforest": 4,
-        "water": 5
+        "co2": 7,
+        "fairTrade": 8,
+        "organic": 8,
+        "rainforest": 5,
+        "water": 6
       },
       "farms": [
         "Nyeri Gatomboya Farm"
@@ -459,11 +459,11 @@
         "Rainforest_Alliance"
       ],
       "esg": {
-        "co2": 6,
-        "fairTrade": 3,
-        "organic": 4,
+        "co2": 7,
+        "fairTrade": 5,
+        "organic": 5,
         "rainforest": 8,
-        "water": 5
+        "water": 8
       },
       "farms": [
         "West Valley Helsar Farm"
@@ -481,11 +481,11 @@
         "Organic"
       ],
       "esg": {
-        "co2": 10,
-        "fairTrade": 9,
-        "organic": 9,
-        "rainforest": 4,
-        "water": 5
+        "co2": 9,
+        "fairTrade": 8,
+        "organic": 10,
+        "rainforest": 6,
+        "water": 7
       },
       "farms": [
         "Cajamarca Villa Rica Farm"
@@ -504,11 +504,11 @@
         "Rainforest_Alliance"
       ],
       "esg": {
-        "co2": 10,
-        "fairTrade": 3,
-        "organic": 4,
-        "rainforest": 8,
-        "water": 5
+        "co2": 8,
+        "fairTrade": 5,
+        "organic": 6,
+        "rainforest": 7,
+        "water": 9
       },
       "farms": [
         "Sidamo Guji Farm"
@@ -528,11 +528,11 @@
         "UTZ"
       ],
       "esg": {
-        "co2": 6,
-        "fairTrade": 3,
-        "organic": 4,
+        "co2": 7,
+        "fairTrade": 6,
+        "organic": 5,
         "rainforest": 8,
-        "water": 5
+        "water": 7
       },
       "farms": [
         "Huila El Paraiso Farm"
@@ -549,11 +549,11 @@
         "Fair_Trade"
       ],
       "esg": {
-        "co2": 10,
+        "co2": 8,
         "fairTrade": 9,
-        "organic": 4,
-        "rainforest": 4,
-        "water": 5
+        "organic": 5,
+        "rainforest": 5,
+        "water": 6
       },
       "farms": [
         "Narino San Juan Farm"
@@ -572,11 +572,11 @@
         "Rainforest_Alliance"
       ],
       "esg": {
-        "co2": 6,
-        "fairTrade": 3,
+        "co2": 5,
+        "fairTrade": 4,
         "organic": 4,
         "rainforest": 8,
-        "water": 5
+        "water": 4
       },
       "farms": [
         "Java Ijen Estate"
@@ -594,10 +594,10 @@
       ],
       "esg": {
         "co2": 6,
-        "fairTrade": 5,
-        "organic": 9,
-        "rainforest": 4,
-        "water": 5
+        "fairTrade": 6,
+        "organic": 8,
+        "rainforest": 5,
+        "water": 4
       },
       "farms": [
         "Sumatra Mandheling Gayo Farm"
@@ -616,11 +616,11 @@
         "Fair_Trade"
       ],
       "esg": {
-        "co2": 6,
-        "fairTrade": 9,
-        "organic": 4,
+        "co2": 5,
+        "fairTrade": 8,
+        "organic": 3,
         "rainforest": 4,
-        "water": 5
+        "water": 6
       },
       "farms": [
         "Copan San Marcos Farm"
@@ -637,10 +637,10 @@
         "Rainforest_Alliance"
       ],
       "esg": {
-        "co2": 6,
-        "fairTrade": 3,
-        "organic": 4,
-        "rainforest": 8,
+        "co2": 5,
+        "fairTrade": 4,
+        "organic": 3,
+        "rainforest": 7,
         "water": 5
       },
       "farms": [
@@ -658,11 +658,11 @@
         "UTZ"
       ],
       "esg": {
-        "co2": 10,
+        "co2": 8,
         "fairTrade": 3,
         "organic": 4,
         "rainforest": 4,
-        "water": 5
+        "water": 6
       },
       "farms": [
         "Sao Paulo Fazenda Ipe"
@@ -680,10 +680,10 @@
       "certs": [],
       "esg": {
         "co2": 2,
-        "fairTrade": 3,
-        "organic": 4,
-        "rainforest": 4,
-        "water": 5
+        "fairTrade": 2,
+        "organic": 2,
+        "rainforest": 3,
+        "water": 3
       },
       "farms": [
         "Dak Lak Central Highlands Farm"

@@ -328,7 +328,7 @@ function renderMap(farms,ports){
 
 function renderESG(brands){
   const sel=document.getElementById('esgBrandSelector');
-  const top=brands.filter(b=>b.price>0).slice(0,8);
+  const top=brands.filter(b=>b.price>0);
   selectedBrands=top.slice(0,3).map(b=>b.id);
   top.forEach(b=>{
     const btn=document.createElement('button');
@@ -336,7 +336,7 @@ function renderESG(brands){
     btn.textContent=b.name;
     btn.onclick=()=>{
       if(selectedBrands.includes(b.id)){if(selectedBrands.length>1){selectedBrands=selectedBrands.filter(x=>x!==b.id);btn.classList.remove('active')}}
-      else if(selectedBrands.length<4){selectedBrands.push(b.id);btn.classList.add('active')}
+      else if(selectedBrands.length<6){selectedBrands.push(b.id);btn.classList.add('active')}
       updateRadar(brands);
     };
     sel.appendChild(btn);
@@ -368,7 +368,7 @@ function renderESG(brands){
 }
 
 function updateRadar(brands){
-  const COLORS=['#c8885a','#5dbb85','#7aabcc','#d4a853'];
+  const COLORS=['#c8885a','#5dbb85','#7aabcc','#d4a853','#d97060','#a078c8'];
   esgChart.data.datasets=selectedBrands.map((id,i)=>{
     const b=brands.find(x=>x.id===id);if(!b)return null;
     return{label:b.name,data:[b.esg.co2,b.esg.fairTrade,b.esg.organic,b.esg.rainforest,b.esg.water],
