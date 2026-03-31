@@ -94,6 +94,17 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg3);color:var(
 .ex-chips{display:flex;flex-wrap:wrap;gap:6px}
 .ex-chip{background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:3px 10px;font-size:11px;color:var(--text3);cursor:pointer;transition:all .15s;user-select:none}
 .ex-chip:hover{border-color:var(--accent);color:var(--accent2)}
+/* ── Query Category Cards ── */
+.qcat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
+.qcat-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:.85rem 1rem;transition:border-color .2s}
+.qcat-card:hover{border-color:var(--border2)}
+.qcat-header{display:flex;align-items:center;gap:7px;margin-bottom:.6rem;padding-bottom:.5rem;border-bottom:1px solid var(--border)}
+.qcat-icon{font-size:15px;width:28px;height:28px;background:var(--bg4);border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.qcat-name{font-size:11px;font-weight:500;color:var(--text2);letter-spacing:.04em;text-transform:uppercase;font-family:var(--fm)}
+.qcat-count{font-size:9.5px;color:var(--text3);font-family:var(--fm);margin-left:auto}
+.qcat-chips{display:flex;flex-wrap:wrap;gap:5px}
+.qcat-chip{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:2px 8px;font-size:10.5px;color:var(--text3);cursor:pointer;transition:all .15s;user-select:none;line-height:1.5}
+.qcat-chip:hover{border-color:var(--accent);color:var(--accent2);background:rgba(200,136,90,.08)}
 .sparql-block{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:1rem 1.2rem;overflow-x:auto;margin-top:4px}
 .sparql-block pre{font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.8;color:var(--text2);white-space:pre;margin:0}
 .sq-kw{color:#7aabcc;font-weight:600}
@@ -273,7 +284,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg3);color:var(
         <input id="nlInput" class="nl-input" placeholder="질문을 입력하세요 — 예: 저탄소 농장 목록 / 커피숍을 시작하려면?" onkeydown="if(event.key==='Enter')runNLQuery()">
         <button class="query-btn" onclick="runNLQuery()">질의 실행 →</button>
       </div>
-      <div class="ex-chips" id="exChips"></div>
+      <div class="qcat-grid" id="exChips"></div>
     </div>
 
     <div id="sparqlDisplay" style="display:none;margin-bottom:14px" class="card">
@@ -691,37 +702,19 @@ fetch('coffeeland_data.json').then(r=>r.json()).then(data=>{
 /* ══════════════════════════════════════════
    자연어 → SPARQL 질의 엔진
    ══════════════════════════════════════════ */
-const EXAMPLES = [
-  '저탄소 농장 목록',
-  '공정무역 인증 브랜드는?',
-  '가장 비싼 브랜드 TOP 5',
-  '가장 저렴한 브랜드',
-  '콜롬비아 농장',
-  '카푸치노 원두 추적',
-  'ESG 점수 순위',
-  '전체 통계 요약',
-  '이중 인증 브랜드',
-  '워시드 가공 브랜드',
-  '허니 가공 브랜드',
-  '웻헐드 가공 브랜드',
-  '수출 항구 목록',
-  '유기농 인증 브랜드',
-  'Rainforest Alliance 인증',
-  'UTZ 인증 브랜드',
-  '원산지 국가 목록',
-  '전체 메뉴 목록',
-  '스타벅스 원두',
-  '블루보틀 원두',
-  '체인별 원두 브랜드',
-  '브랜드별 농장 추적',
-  '전체 공급망 추적',
-  '인증별 브랜드 수',
-  '브랜드 등급별 목록',
-  '가공방식별 브랜드 수',
-  '프리미엄 브랜드',
-  '럭셔리 브랜드',
-  '농장별 관련 브랜드',
+const QUERY_CATEGORIES = [
+  { icon:'📊', name:'온톨로지 통계', queries:['전체 통계 요약'] },
+  { icon:'☕', name:'음료 메뉴', queries:['전체 메뉴 목록','카푸치노 원두 추적'] },
+  { icon:'🏷️', name:'커피 브랜드', queries:['가장 비싼 브랜드 TOP 5','가장 저렴한 브랜드','프리미엄 브랜드','럭셔리 브랜드','브랜드 등급별 목록'] },
+  { icon:'🏪', name:'커피 체인', queries:['스타벅스 원두','블루보틀 원두','체인별 원두 브랜드'] },
+  { icon:'🔗', name:'공급망 추적', queries:['브랜드별 농장 추적','농장별 관련 브랜드','전체 공급망 추적'] },
+  { icon:'🌍', name:'국가 · 지역', queries:['콜롬비아 농장','원산지 국가 목록','수출 항구 목록'] },
+  { icon:'🌿', name:'농장 탐색', queries:['저탄소 농장 목록','고탄소 농장 목록'] },
+  { icon:'✅', name:'인증 · 품질', queries:['공정무역 인증 브랜드는?','유기농 인증 브랜드','이중 인증 브랜드','Rainforest Alliance 인증','UTZ 인증 브랜드','인증별 브랜드 수'] },
+  { icon:'⚙️', name:'가공 방식', queries:['워시드 가공 브랜드','허니 가공 브랜드','웻헐드 가공 브랜드','가공방식별 브랜드 수'] },
+  { icon:'🌱', name:'ESG · 지속가능성', queries:['ESG 점수 순위','국가별 CO₂ 배출 평균'] },
 ];
+const EXAMPLES = QUERY_CATEGORIES.flatMap(c=>c.queries);
 
 const NS = 'PREFIX cf: <http://www.semanticweb.org/boogi/ontologies/2025/11/untitled-ontology-2#>\nPREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n\n';
 
@@ -1537,7 +1530,7 @@ async function runNLQuery(){
         </div>
         <div style="margin-top:14px;font-size:12px">또는 아래 SPARQL 질문을 사용해보세요:</div>
         <div class="result-pills" style="justify-content:center;margin-top:10px">
-          ${EXAMPLES.map(e=>`<span class="result-pill" style="cursor:pointer" onclick="setQuery('${e}')">${e}</span>`).join('')}
+          ${EXAMPLES.slice(0,10).map(e=>`<span class="result-pill" style="cursor:pointer" onclick="setQuery('${e}')">${e}</span>`).join('')}
         </div>
       </div>`;
       return;
@@ -1585,11 +1578,20 @@ function setQuery(q){document.getElementById('nlInput').value=q;runNLQuery();}
   updateApiStatus();
   const el=document.getElementById('exChips');
   if(!el)return;
-  EXAMPLES.forEach(e=>{
-    const c=document.createElement('span');
-    c.className='ex-chip';c.textContent=e;
-    c.onclick=()=>setQuery(e);
-    el.appendChild(c);
+  QUERY_CATEGORIES.forEach(cat=>{
+    const card=document.createElement('div');
+    card.className='qcat-card';
+    card.innerHTML=`<div class="qcat-header"><div class="qcat-icon">${cat.icon}</div><span class="qcat-name">${cat.name}</span><span class="qcat-count">${cat.queries.length}건</span></div>`;
+    const chips=document.createElement('div');
+    chips.className='qcat-chips';
+    cat.queries.forEach(q=>{
+      const c=document.createElement('span');
+      c.className='qcat-chip';c.textContent=q;
+      c.onclick=()=>setQuery(q);
+      chips.appendChild(c);
+    });
+    card.appendChild(chips);
+    el.appendChild(card);
   });
 })();
 </script>
