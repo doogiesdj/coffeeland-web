@@ -535,8 +535,8 @@ function showFlowInfo(n){
 
 function renderTraceFlow(trace, data){
   const svg=document.getElementById('traceSvg');
-  const W=Math.max(svg.parentElement.clientWidth||1400,1100);
-  /* 11 columns: Menu, Brand, ConsumerWH, ImportBroker, ConsumerPort, Logistics, ProducerPort, ExportBroker, ProducerWH, Farm, Country */
+  const W=1400;
+  /* 11 columns — SVG scales to fit via viewBox + 100% width */
   const menuArr=[...new Set(trace.map(t=>t.menu))].sort();
   const brandArr=data.brands.map(b=>b.id).sort();
   const cwArr=data.consumer_warehouses.map(w=>w.id).sort();
@@ -553,10 +553,9 @@ function renderTraceFlow(trace, data){
   const maxCount=Math.max(...arrs.map(a=>a.length));
   const ROW_H=26,PAD_TOP=48,PAD_BOT=10,NW=62,NH=22;
   const H=PAD_TOP+maxCount*ROW_H+PAD_BOT;
-  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.setAttribute('width',W);svg.setAttribute('height',H);
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.style.width='100%';svg.style.height='auto';svg.removeAttribute('width');svg.removeAttribute('height');
   svg.style.background='var(--bg3)';svg.style.borderRadius='8px';
-  const colGap=W/(COLS+0.2);
-  const colX=Array.from({length:COLS},(_,i)=>colGap*(i+0.35));
+  const colX=Array.from({length:COLS},(_,i)=>NW/2+8+(W-NW-16)/(COLS-1)*i);
   const TYPES=['menu','brand','cw','ib','cp','lp','pp','eb','pw','farm','country'];
   const CLR=['#a078c8','#c8885a','#d4a853','#e07850','#7aabcc','#50b8a0','#5d8ecc','#cc6688','#bfa040','#5dbb85','#d97060'];
   const BGS=CLR.map(c=>c+'1e');
