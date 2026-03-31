@@ -577,9 +577,9 @@ function renderTraceFlow(trace, data){
   /* IB lookup: brand→IB ids */
   const ibByBrand={};data.import_brokers.forEach(ib=>{ib.brands.forEach(b=>{if(!ibByBrand[b])ibByBrand[b]=[];ibByBrand[b].push(ib.id)})});
   /* IB→CW mapping by HQ geography */
-  const ibToCW={'IB_Sucafina':['CW_Rotterdam','CW_Genoa','CW_Tokyo'],'IB_Volcafe':['CW_Rotterdam','CW_Antwerp','CW_NewOrleans'],'IB_Neumann':['CW_Hamburg','CW_Antwerp','CW_Busan'],'IB_Falcon':['CW_Felixstowe','CW_Sydney'],'IB_Strauss':['CW_Valencia','CW_Genoa','CW_Singapore'],'IB_GreenCoffee':['CW_Felixstowe','CW_LongBeach','CW_NewOrleans']};
+  const ibToCW={'IB_Sucafina':['CW_Rotterdam','CW_Genoa','CW_Tokyo'],'IB_Volcafe':['CW_Rotterdam','CW_Antwerp','CW_NewOrleans'],'IB_Neumann':['CW_Hamburg','CW_Antwerp','CW_Busan'],'IB_Falcon':['CW_Felixstowe','CW_Sydney'],'IB_Strauss':['CW_Valencia','CW_Genoa','CW_Singapore'],'IB_GreenCoffee':['CW_Felixstowe','CW_LongBeach','CW_NewOrleans'],'IB_JDE':['CW_Rotterdam','CW_Hamburg','CW_LongBeach'],'IB_Tchibo':['CW_Hamburg','CW_Antwerp','CW_Felixstowe']};
   /* IB→CP mapping (IB operates through these consumer ports) */
-  const ibToCP={'IB_Sucafina':['CP_Rotterdam','CP_Genoa','CP_Tokyo'],'IB_Volcafe':['CP_Rotterdam','CP_Antwerp','CP_NewOrleans'],'IB_Neumann':['CP_Hamburg','CP_Antwerp','CP_Busan'],'IB_Falcon':['CP_Felixstowe','CP_Sydney'],'IB_Strauss':['CP_Valencia','CP_Genoa','CP_Singapore'],'IB_GreenCoffee':['CP_Felixstowe','CP_LongBeach','CP_NewOrleans']};
+  const ibToCP={'IB_Sucafina':['CP_Rotterdam','CP_Genoa','CP_Tokyo'],'IB_Volcafe':['CP_Rotterdam','CP_Antwerp','CP_NewOrleans'],'IB_Neumann':['CP_Hamburg','CP_Antwerp','CP_Busan'],'IB_Falcon':['CP_Felixstowe','CP_Sydney'],'IB_Strauss':['CP_Valencia','CP_Genoa','CP_Singapore'],'IB_GreenCoffee':['CP_Felixstowe','CP_LongBeach','CP_NewOrleans'],'IB_JDE':['CP_Rotterdam','CP_Hamburg','CP_LongBeach'],'IB_Tchibo':['CP_Hamburg','CP_Antwerp','CP_Felixstowe']};
   /* 1. Menu → Brand */
   trace.forEach(t=>addLink('m_'+t.menu,'b_'+t.brand,'l'));
   /* 2. Brand → CW: via IB's warehouse assignments */
