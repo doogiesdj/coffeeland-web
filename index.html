@@ -1430,7 +1430,12 @@ ORDER BY DESC(?co2)`,
     match: q => /(에스프레소).*(기반|based|카테고리|category)/i.test(q),
     title: '에스프레소 기반 음료',
     sparql: NS+`SELECT ?beverage ?name ?caffeine ?calories\nWHERE {\n    ?beverage rdf:type cf:BeverageMenu .\n    ?beverage cf:hasCategory ?category .\n    ?beverage cf:hasBeverageName ?name .\n    OPTIONAL { ?beverage cf:hasCaffeineContent ?caffeine }\n    OPTIONAL { ?beverage cf:hasCalories ?calories }\n    FILTER(CONTAINS(?category, "Espresso"))\n}\nORDER BY ?name`,
-    run: () => ({type:'single', label:'Protégé SPARQL 탭에서 실행하세요', value:'📋', unit:'BeverageMenu'})
+    run: D => {
+      const esp=['Espresso','Double_Espresso','Americano','Iced_Americano','Cappuccino','Caffe_Latte','Flat_White','Cortado','Macchiato','Caramel_Macchiato','Mocha','Iced_Mocha','Affogato','Vanilla_Latte','Iced_Latte'];
+      const menus=[...new Set(D.trace.map(t=>t.menu))].filter(m=>esp.includes(m)).sort();
+      const rows=menus.map(m=>{const bs=[...new Set(D.trace.filter(t=>t.menu===m).map(t=>t.brand.replace(/_/g,' ')))]; return[m.replace(/_/g,' '), bs.join(', ')];});
+      return{type:'table', title:`에스프레소 기반 음료 ${rows.length}건`, headers:['메뉴','사용 브랜드'], rows};
+    }
   },
   {
     match: q => /(칼로리|calorie).*(이하|under|low|200)/i.test(q),
@@ -1448,13 +1453,20 @@ ORDER BY DESC(?co2)`,
     match: q => /(특정|specific).*(음료|beverage).*(상세|detail|정보)|(음료).*(상세|detail)/i.test(q),
     title: '특정 음료의 전체 상세 정보 (예: Americano)',
     sparql: NS+`SELECT ?property ?value\nWHERE {\n    cf:Americano ?property ?value .\n}`,
-    run: () => ({type:'single', label:'Protégé SPARQL 탭에서 실행하세요', value:'📋', unit:'BeverageMenu'})
+    run: D => {
+      const rows=D.trace.filter(t=>t.menu==='Americano').map(t=>[t.brand.replace(/_/g,' '), t.farm.replace(/Farm_/,'').replace(/_/g,' '), t.country]);
+      return{type:'table', title:'Americano 상세 (브랜드→농장→원산지)', headers:['브랜드','농장','원산지'], rows};
+    }
   },
   {
     match: q => /(아이스|ice|cold|차가운).*(음료|beverage|drink|조회)/i.test(q),
     title: '아이스(Cold) 음료 조회',
     sparql: NS+`SELECT ?name ?category ?caffeine ?calories\nWHERE {\n    ?beverage rdf:type cf:BeverageMenu .\n    ?beverage cf:hasBeverageName ?name .\n    ?beverage cf:hasTemperature ?temp .\n    OPTIONAL { ?beverage cf:hasCategory ?category }\n    OPTIONAL { ?beverage cf:hasCaffeineContent ?caffeine }\n    OPTIONAL { ?beverage cf:hasCalories ?calories }\n    FILTER(CONTAINS(LCASE(?temp), "cold") || CONTAINS(LCASE(?temp), "ice"))\n}\nORDER BY ?name`,
-    run: () => ({type:'single', label:'Protégé SPARQL 탭에서 실행하세요', value:'📋', unit:'BeverageMenu'})
+    run: D => {
+      const menus=[...new Set(D.trace.map(t=>t.menu))].filter(m=>/^Iced|Cold|Nitro/i.test(m)).sort();
+      const rows=menus.map(m=>{const bs=[...new Set(D.trace.filter(t=>t.menu===m).map(t=>t.brand.replace(/_/g,' ')))]; return[m.replace(/_/g,' '), bs.join(', ')];});
+      return{type:'table', title:`아이스/콜드 음료 ${rows.length}건`, headers:['메뉴','사용 브랜드'], rows};
+    }
   },
   {
     match: q => /(우유|milk|밀크).*(포함|contain|음료|beverage)|(재료|ingredient).*(포함|음료)/i.test(q),
@@ -1468,7 +1480,10 @@ ORDER BY DESC(?co2)`,
     match: q => /(품질|quality).*(등급|grade)/i.test(q),
     title: '모든 커피 브랜드와 품질 등급',
     sparql: NS+`SELECT ?brand ?grade ?priceSegment\nWHERE {\n    ?brand rdf:type cf:CoffeeBrand .\n    OPTIONAL { ?brand cf:hasQualityGrade ?grade }\n    OPTIONAL { ?brand cf:hasPriceSegment ?priceSegment }\n}\nORDER BY ?brand`,
-    run: () => ({type:'single', label:'Protégé SPARQL 탭에서 실행하세요', value:'📋', unit:'CoffeeBrand'})
+    run: D => ({type:'table',
+      headers:['브랜드','등급','가공방식','가격 (USD/kg)'],
+      rows:[...D.brands].sort((a,b)=>a.name.localeCompare(b.name))
+        .map(b=>[b.name, b.segment||'—', b.method, `$${b.price.toFixed(2)}`])})
   },
   {
     match: q => /(인증).*(보유|가진|있는).*(브랜드)|(브랜드).*(인증).*(보유|가진)/i.test(q),
@@ -1509,7 +1524,10 @@ ORDER BY DESC(?co2)`,
     match: q => /(체인).*(창고|warehouse)|(창고).*(체인|운영)/i.test(q),
     title: '체인이 운영하는 창고',
     sparql: NS+`SELECT ?chain ?warehouse\nWHERE {\n    ?chain rdf:type cf:CoffeeChain .\n    ?chain cf:operatesWarehouse ?warehouse .\n}\nORDER BY ?chain`,
-    run: () => ({type:'single', label:'Protégé SPARQL 탭에서 실행하세요', value:'📋', unit:'CoffeeChain'})
+    run: D => {
+      const rows=(D.warehouses||[]).map(w=>[w.label,w.country,w.port?w.port.replace(/Port_/,'').replace(/_/g,' '):'—']);
+      return{type:'table', title:`창고 ${rows.length}건`, headers:['창고','국가','연결 항구'], rows};
+    }
   },
 
   /* ── 5. 공급망 (추가) ── */
@@ -1517,7 +1535,10 @@ ORDER BY DESC(?co2)`,
     match: q => /(농장).*(품종).*(브랜드)|(farm).*(variety).*(brand)/i.test(q),
     title: '농장 → 커피 품종 → 브랜드 전체 추적',
     sparql: NS+`SELECT ?farm ?variety ?brand\nWHERE {\n    ?farm rdf:type cf:Farm .\n    ?farm cf:cultivates ?variety .\n    ?brand cf:sourcedFrom ?farm .\n}\nORDER BY ?farm`,
-    run: () => ({type:'single', label:'Protégé SPARQL 탭에서 실행하세요', value:'📋', unit:'Supply Chain'})
+    run: D => {
+      const rows=D.farm_map.filter(f=>f.brands.length>0).flatMap(f=>f.brands.map(b=>[f.name, f.country, b.replace(/_/g,' ')]));
+      return{type:'table', title:`농장→브랜드 추적 ${rows.length}건`, headers:['농장','국가','브랜드'], rows};
+    }
   },
   {
     match: q => /(협동조합|cooperative|coop|조합).*(농장|farm|소속)/i.test(q),
@@ -1529,13 +1550,21 @@ ORDER BY DESC(?co2)`,
     match: q => /(브로커|broker).*(중개|활동|매입|purchase)/i.test(q),
     title: '브로커의 중개 활동 (농장에서 구매)',
     sparql: NS+`SELECT ?broker ?farm ?variety\nWHERE {\n    ?broker rdf:type cf:Broker .\n    ?broker cf:purchasesFrom ?farm .\n    OPTIONAL { ?broker cf:trades ?variety }\n}\nORDER BY ?broker`,
-    run: () => ({type:'single', label:'Protégé SPARQL 탭에서 실행하세요', value:'📋', unit:'Supply Chain'})
+    run: D => {
+      const rows=[];
+      (D.export_brokers||[]).forEach(b=>rows.push([b.label,'Export',b.hq,b.brands.map(x=>x.replace(/_/g,' ')).join(', '),(b.ports||[]).map(p=>p.replace(/PP_/,'')).join(', ')]));
+      (D.import_brokers||[]).forEach(b=>rows.push([b.label,'Import',b.hq,b.brands.map(x=>x.replace(/_/g,' ')).join(', '),'—']));
+      return{type:'table', title:`브로커 ${rows.length}건`, headers:['브로커','유형','본사','취급 브랜드','관련 항구'], rows};
+    }
   },
   {
     match: q => /(물류|logistics|운송|transport).*(경로|route|제공)/i.test(q),
     title: '물류 제공자의 운송 경로 (Port → Port)',
     sparql: NS+`SELECT ?provider ?fromPort ?toPort ?warehouse\nWHERE {\n    ?provider rdf:type cf:LogisticsProvider .\n    OPTIONAL { ?provider cf:transportsFrom ?fromPort }\n    OPTIONAL { ?provider cf:transportsTo ?toPort }\n    OPTIONAL { ?provider cf:usesWarehouse ?warehouse }\n}\nORDER BY ?provider`,
-    run: () => ({type:'single', label:'Protégé SPARQL 탭에서 실행하세요', value:'📋', unit:'Supply Chain'})
+    run: D => {
+      const rows=(D.logistics_providers||[]).map(lp=>[lp.label,lp.hq,lp.from.map(p=>p.replace(/PP_/,'')).join(', '),lp.to.map(p=>p.replace(/CP_/,'')).join(', ')]);
+      return{type:'table', title:`물류 제공자 ${rows.length}건`, headers:['물류사','본사','출발 항구 (생산국)','도착 항구 (소비국)'], rows};
+    }
   },
   {
     match: q => /(로스터|roaster).*(가공|브랜드|roast)/i.test(q),
@@ -1553,7 +1582,11 @@ ORDER BY DESC(?co2)`,
     match: q => /(항구).*(간|between|배송|shipping|경로|route)/i.test(q),
     title: '항구 간 배송 경로',
     sparql: NS+`SELECT ?portA ?portB\nWHERE {\n    ?portA rdf:type cf:Port .\n    ?portA cf:ships ?portB .\n}\nORDER BY ?portA`,
-    run: () => ({type:'single', label:'Protégé SPARQL 탭에서 실행하세요', value:'📋', unit:'Supply Chain'})
+    run: D => {
+      const rows=[];
+      (D.logistics_providers||[]).forEach(lp=>{lp.from.forEach(f=>{lp.to.forEach(t=>{rows.push([f.replace(/PP_/,''),t.replace(/CP_/,''),lp.label]);});});});
+      return{type:'table', title:`배송 경로 ${rows.length}건`, headers:['출발 항구','도착 항구','물류사'], rows:rows.slice(0,40)};
+    }
   },
 
   /* ── 6. 국가/지역 (추가) ── */
@@ -1561,13 +1594,24 @@ ORDER BY DESC(?co2)`,
     match: q => /(생산국|producing).*(수출|export)|(수출).*(대상국|destination)/i.test(q),
     title: '모든 커피 생산국과 수출 대상국',
     sparql: NS+`SELECT ?country ?exportsTo\nWHERE {\n    ?country rdf:type cf:Country .\n    ?country cf:exportsTo ?exportsTo .\n}\nORDER BY ?country`,
-    run: () => ({type:'single', label:'Protégé SPARQL 탭에서 실행하세요', value:'📋', unit:'Country'})
+    run: D => {
+      const rows=Object.entries(D.farm_export_port||{}).map(([c,p])=>{
+        const farms=D.farm_map.filter(f=>f.country===c).length;
+        return[c,p.replace(/PP_/,''),farms];
+      }).sort((a,b)=>b[2]-a[2]);
+      return{type:'table', title:`커피 생산국 ${rows.length}개`, headers:['생산국','수출 항구','농장 수'], rows};
+    }
   },
   {
     match: q => /(특정|specific).*(국가).*(생산|produce).*(커피|coffee)|(국가).*(생산).*(커피)/i.test(q),
     title: '특정 국가의 생산 커피 (예: Ethiopia)',
     sparql: NS+`SELECT ?product\nWHERE {\n    cf:Ethiopia cf:produces ?product .\n}`,
-    run: () => ({type:'single', label:'Protégé SPARQL 탭에서 실행하세요', value:'📋', unit:'Country'})
+    run: D => {
+      const farms=D.farm_map.filter(f=>f.country==='Ethiopia');
+      const brands=[...new Set(farms.flatMap(f=>f.brands))];
+      const rows=farms.map(f=>[f.name, f.brands.map(b=>b.replace(/_/g,' ')).join(', '), f.co2]);
+      return{type:'table', title:`Ethiopia 생산 커피 (농장 ${farms.length}개, 브랜드 ${brands.length}개)`, headers:['농장','관련 브랜드','CO₂ (kg/kg)'], rows};
+    }
   },
   {
     match: q => /(국가).*(수도|capital)|(수도).*(국가)/i.test(q),
@@ -1619,7 +1663,9 @@ ORDER BY DESC(?co2)`,
     match: q => /(농장).*(지속가능|sustainability|지표|metric|impact)/i.test(q),
     title: '농장의 지속가능성 지표',
     sparql: NS+`SELECT ?farm ?metric\nWHERE {\n    ?farm rdf:type cf:Farm .\n    ?farm cf:hasImpact ?metric .\n}\nORDER BY ?farm`,
-    run: () => ({type:'single', label:'Protégé SPARQL 탭에서 실행하세요', value:'📋', unit:'Farm'})
+    run: D => ({type:'table',
+      headers:['농장','국가','CO₂ (kg/kg)','ESG 등급'],
+      rows:[...D.farm_map].sort((a,b)=>a.co2-b.co2).map(f=>[f.name,f.country,f.co2,f.co2<=3?'✅ 저탄소':f.co2>6?'⚠️ 고탄소':'보통'])})
   },
 
   /* ── 9. 고급 분석 (추가) ── */
@@ -1627,13 +1673,25 @@ ORDER BY DESC(?co2)`,
     match: q => /(카테고리별|category).*(음료|beverage).*(수|count)/i.test(q),
     title: '카테고리별 음료 수',
     sparql: NS+`SELECT ?category (COUNT(?beverage) AS ?count)\nWHERE {\n    ?beverage rdf:type cf:BeverageMenu .\n    ?beverage cf:hasCategory ?category .\n}\nGROUP BY ?category\nORDER BY DESC(?count)`,
-    run: () => ({type:'single', label:'Protégé SPARQL 탭에서 실행하세요', value:'📋', unit:'BeverageMenu'})
+    run: D => {
+      const all=[...new Set(D.trace.map(t=>t.menu))];
+      const esp=['Espresso','Double_Espresso','Americano','Iced_Americano','Cappuccino','Caffe_Latte','Flat_White','Cortado','Macchiato','Caramel_Macchiato','Mocha','Iced_Mocha','Affogato','Vanilla_Latte','Iced_Latte'];
+      const alt=['Aeropress','French_Press','Pour_Over'];
+      const cold=['Cold_Brew','Nitro_Cold_Brew'];
+      const eC=all.filter(m=>esp.includes(m)).length, aC=all.filter(m=>alt.includes(m)).length, cC=all.filter(m=>cold.includes(m)).length;
+      return{type:'table', headers:['카테고리','음료 수','대표 메뉴'],
+        rows:[['Espresso Based',eC,'Americano, Latte, Cappuccino …'],['Alternative Brew',aC,'Aeropress, French Press, Pour Over'],['Cold Brew',cC,'Cold Brew, Nitro Cold Brew']]};
+    }
   },
   {
     match: q => /(국가별).*(커피|coffee).*(생산품|product).*(수|count)/i.test(q),
     title: '국가별 커피 생산품 수',
     sparql: NS+`SELECT ?country (COUNT(?product) AS ?count)\nWHERE {\n    ?country rdf:type cf:Country .\n    ?country cf:produces ?product .\n}\nGROUP BY ?country\nORDER BY DESC(?count)`,
-    run: () => ({type:'single', label:'Protégé SPARQL 탭에서 실행하세요', value:'📋', unit:'Country'})
+    run: D => {
+      const cc={};D.farm_map.forEach(f=>{if(!cc[f.country])cc[f.country]=new Set();f.brands.forEach(b=>cc[f.country].add(b));});
+      const rows=Object.entries(cc).map(([c,bs])=>[c,bs.size,[...bs].slice(0,3).map(b=>b.replace(/_/g,' ')).join(', ')]).sort((a,b)=>b[1]-a[1]);
+      return{type:'table', headers:['국가','브랜드 수','대표 브랜드'], rows};
+    }
   },
   {
     match: q => /(평균.*가격|avg.*price).*(높|카테고리|category)/i.test(q),
@@ -1661,7 +1719,17 @@ ORDER BY DESC(?co2)`,
     match: q => /(체인).*(메뉴.*수|평균.*가격)|(메뉴.*수).*(체인)/i.test(q),
     title: '체인별 메뉴 수와 평균 가격',
     sparql: NS+`SELECT ?chain (COUNT(?beverage) AS ?menuCount) (AVG(?price) AS ?avgPrice)\nWHERE {\n    ?chain rdf:type cf:CoffeeChain .\n    ?chain cf:offersMenu ?beverage .\n    OPTIONAL { ?beverage cf:hasPriceMedium ?price }\n}\nGROUP BY ?chain\nORDER BY DESC(?menuCount)`,
-    run: () => ({type:'single', label:'Protégé SPARQL 탭에서 실행하세요', value:'📋', unit:'CoffeeChain'})
+    run: D => {
+      const cm={};
+      D.flow_links.filter(l=>l.type==='supplies').forEach(l=>{
+        const chain=l.target.replace('chain_','').replace(/_/g,' ');
+        const bid=l.source.replace('brand_','');
+        if(!cm[chain])cm[chain]=new Set();
+        D.trace.filter(t=>t.brand===bid).forEach(t=>cm[chain].add(t.menu));
+      });
+      const rows=Object.entries(cm).map(([c,ms])=>[c,ms.size]).sort((a,b)=>b[1]-a[1]);
+      return{type:'table', headers:['체인','메뉴 수'], rows};
+    }
   },
 
   /* ── 10. CONSTRUCT & ASK ── */
@@ -1675,13 +1743,22 @@ ORDER BY DESC(?co2)`,
     match: q => /(fair.*trade).*(인증.*확인|ask|검증)|(인증.*확인).*(fair)/i.test(q),
     title: 'ASK: 특정 브랜드가 Fair Trade 인증을 가졌는지 확인',
     sparql: NS+`ASK {\n    cf:Colombian_Supremo cf:brandHasCertification cf:Fair_Trade .\n}`,
-    run: () => ({type:'single', label:'Protégé SPARQL 탭에서 실행하세요 (ASK → true/false)', value:'📋', unit:'Boolean'})
+    run: D => {
+      const brand=D.brands.find(b=>b.id==='Colombian_Supremo');
+      const has=brand&&brand.certs.includes('Fair_Trade');
+      return{type:'single', label:'Colombian Supremo → Fair Trade 인증 보유 여부', value:has?'✅ TRUE':'❌ FALSE', unit:'ASK'};
+    }
   },
   {
     match: q => /(스타벅스).*(에티오피아|ethiopia).*(확인|ask|사용)/i.test(q),
     title: 'ASK: 스타벅스가 에티오피아산 커피를 사용하는지',
     sparql: NS+`ASK {\n    cf:Starbucks cf:sourcesBrandFrom ?brand .\n    ?brand cf:sourcedFrom ?farm .\n    ?farm cf:memberOfCoop ?coop .\n    ?coop cf:certifies ?cert .\n}`,
-    run: () => ({type:'single', label:'Protégé SPARQL 탭에서 실행하세요 (ASK → true/false)', value:'📋', unit:'Boolean'})
+    run: D => {
+      const stBrands=D.flow_links.filter(l=>l.target==='chain_Starbucks'&&l.type==='supplies').map(l=>l.source.replace('brand_',''));
+      const ethBrands=D.farm_map.filter(f=>f.country==='Ethiopia').flatMap(f=>f.brands);
+      const match=stBrands.filter(b=>ethBrands.includes(b));
+      return{type:'single', label:`Starbucks → 에티오피아산 사용 여부${match.length>0?' ('+match.map(b=>b.replace(/_/g,' ')).join(', ')+')':''}`, value:match.length>0?'✅ TRUE':'❌ FALSE', unit:'ASK'};
+    }
   },
 ];
 
