@@ -741,7 +741,7 @@ const NS = 'PREFIX cf: <http://www.semanticweb.org/boogi/ontologies/2025/11/unti
 const QTPL = [
   /* ── 통계 요약 ── */
   {
-    match: q => /(요약|summary|overview|통계|현황|statistics)/i.test(q),
+    match: q => /(요약|summary|overview|통계|statistics)/i.test(q),
     title: '커피랜드 온톨로지 통계 요약',
     sparql: NS+`SELECT
     (COUNT(DISTINCT ?farm)  AS ?farms)
@@ -1261,11 +1261,11 @@ GROUP BY ?certification
 ORDER BY DESC(?brandCount)`,
     run: D => {
       const certMap={};
-      D.brands.forEach(b=>b.certs.forEach(c=>{certMap[c]=(certMap[c]||0)+1;}));
-      const noCert=D.brands.filter(b=>b.certs.length===0).length;
-      const rows=Object.entries(certMap).sort((a,b)=>b[1]-a[1]).map(([c,n])=>[c.replace(/_/g,' '), n]);
-      if(noCert>0)rows.push(['(인증 없음)', noCert]);
-      return{type:'table', headers:['인증','브랜드 수'], rows};
+      D.brands.forEach(b=>b.certs.forEach(c=>{if(!certMap[c])certMap[c]=[];certMap[c].push(b.name);}));
+      const noCert=D.brands.filter(b=>b.certs.length===0);
+      const rows=Object.entries(certMap).sort((a,b)=>b[1].length-a[1].length).map(([c,bs])=>[c.replace(/_/g,' '), bs.length, bs.join(', ')]);
+      if(noCert.length>0)rows.push(['(인증 없음)', noCert.length, noCert.map(b=>b.name).join(', ')]);
+      return{type:'table', headers:['인증','브랜드 수','브랜드 목록'], rows};
     }
   },
   /* ── 브랜드 등급별 목록 ── */
@@ -1799,7 +1799,9 @@ ORDER BY DESC(?co2)`,
     run: D => {
       const brand=D.brands.find(b=>b.id==='Colombian_Supremo');
       const has=brand&&brand.certs.includes('Fair_Trade');
-      return{type:'single', label:'Colombian Supremo → Fair Trade 인증 보유 여부', value:has?'✅ TRUE':'❌ FALSE', unit:'ASK'};
+      const allCerts=brand?brand.certs.map(c=>c.replace(/_/g,' ')).join(', '):'없음';
+      return{type:'table', title:'ASK 결과: Colombian Supremo의 Fair Trade 인증 여부', headers:['질문','결과','보유 인증 전체'],
+        rows:[['Colombian Supremo가 Fair Trade 인증을 가졌는가?', has?'✅ TRUE (보유)':'❌ FALSE (미보유)', allCerts]]};
     }
   },
   {
