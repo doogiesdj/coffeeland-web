@@ -1398,31 +1398,34 @@ ORDER BY DESC(?co2)`,
     match: q => /(모든|전체).*(클래스|class)\b/i.test(q) && !/(계층|hierarchy|sub|하위|상위)/i.test(q),
     title: '모든 클래스 조회',
     sparql: NS+`SELECT ?class\nWHERE {\n    ?class rdf:type owl:Class .\n    FILTER(!isBlank(?class))\n}\nORDER BY ?class`,
-    run: () => ({type:'single', label:'Protégé SPARQL 탭에서 실행하세요 (63개 클래스)', value:'📋', unit:'OWL'})
+    run: D => ({type:'pills', title:'CoffeeLand 온톨로지 주요 클래스 (63개)', items:['Location','Country','Capital','City','Farm','Port','Warehouse','Organization','Broker','ExportBroker','ImportBroker','LogisticsProvider','CertificationBody','CoffeeChain','Cooperative','EquipmentSupplier','Farmer','IngredientVendor','MaintenanceService','ProcessingMill','Retailer','CoffeeShop','Roaster','Product','CoffeeBrand','CoffeeVariety','Consumable','Equipment','Ingredient','BeverageMenu','PosSystem','Recipe','QualityGrade','Certification','ProcessingMethod','Consumer','Price','PricePoint','Season','Harvest','TradeAgreement','SustainabilityMetric']})
   },
   {
     match: q => /(클래스).*(계층|hierarchy|부모|자식|sub)/i.test(q),
     title: '클래스 계층 구조 (부모-자식 관계)',
     sparql: NS+`SELECT ?subclass ?superclass\nWHERE {\n    ?subclass rdfs:subClassOf ?superclass .\n    FILTER(!isBlank(?subclass) && !isBlank(?superclass))\n}\nORDER BY ?superclass ?subclass`,
-    run: () => ({type:'single', label:'Protégé SPARQL 탭에서 실행하세요', value:'📋', unit:'OWL'})
+    run: D => ({type:'table', title:'클래스 계층 구조', headers:['상위 클래스','하위 클래스'],
+      rows:[['Location','Country, Farm, Port, Warehouse'],['Country','Capital, City'],['Organization','Broker, CertificationBody, CoffeeChain, Cooperative, Farmer, Roaster, ProcessingMill, Retailer'],['Broker','ExportBroker, ImportBroker, LogisticsProvider'],['Retailer','CoffeeShop'],['Product','CoffeeBrand, CoffeeVariety, Consumable, Equipment, Ingredient'],['QualityAndProcessing','Certification, ProcessingMethod, QualityGrade'],['ShopOperation','BeverageMenu, PosSystem, Recipe, TrainingProgram'],['Sustainability','SustainabilityMetric'],['AgriEvent','Harvest']]})
   },
   {
     match: q => /(상위|하위).*(클래스|class)/i.test(q),
     title: '특정 상위 클래스의 모든 하위 클래스 (예: Product)',
     sparql: NS+`SELECT ?subclass\nWHERE {\n    ?subclass rdfs:subClassOf cf:Product .\n}\nORDER BY ?subclass`,
-    run: () => ({type:'single', label:'Protégé SPARQL 탭에서 실행하세요', value:'📋', unit:'OWL'})
+    run: D => ({type:'pills', title:'Product의 하위 클래스', items:['CoffeeBrand','CoffeeVariety','Consumable (PaperCup, Straw, TakeoutLid, Napkin, Carrier)','Equipment (EspressoMachine, Grinder, IceMaker, RoasterMachine, WaterFilter)','Ingredient (Bakery, Milk, Sauce, Syrup, TeaBase)']})
   },
   {
     match: q => /(오브젝트|object).*(프로퍼티|property)/i.test(q),
     title: '모든 오브젝트 프로퍼티와 도메인/레인지',
     sparql: NS+`SELECT ?property ?domain ?range\nWHERE {\n    ?property rdf:type owl:ObjectProperty .\n    OPTIONAL { ?property rdfs:domain ?domain }\n    OPTIONAL { ?property rdfs:range ?range }\n}\nORDER BY ?property`,
-    run: () => ({type:'single', label:'Protégé SPARQL 탭에서 실행하세요 (83개 프로퍼티)', value:'📋', unit:'OWL'})
+    run: D => ({type:'table', title:'주요 오브젝트 프로퍼티 (83개)', headers:['프로퍼티','도메인','레인지'],
+      rows:[['sourcedFrom','CoffeeBrand','Farm'],['cultivates','Farm','CoffeeVariety'],['offersMenu','CoffeeChain','BeverageMenu'],['sourcesBrandFrom','CoffeeChain','CoffeeBrand'],['operatesIn','CoffeeChain','City'],['usesCoffeeBrand','BeverageMenu','CoffeeBrand'],['containsIngredient','BeverageMenu','Ingredient'],['brandHasCertification','CoffeeBrand','Certification'],['issuesCertification','CertificationBody','Certification'],['transportsFrom','LogisticsProvider','Port'],['transportsTo','LogisticsProvider','Port'],['memberOfCoop','Farm','Cooperative'],['purchasesFrom','Broker','Farm'],['competesWithChain','CoffeeChain','CoffeeChain'],['usesEquipment','CoffeeShop','Equipment'],['isSuppliedBy','Equipment','EquipmentSupplier']]})
   },
   {
     match: q => /(데이터타입|datatype|데이터).*(프로퍼티|property)/i.test(q),
     title: '모든 데이터타입 프로퍼티와 도메인/레인지',
     sparql: NS+`SELECT ?property ?domain ?range\nWHERE {\n    ?property rdf:type owl:DatatypeProperty .\n    OPTIONAL { ?property rdfs:domain ?domain }\n    OPTIONAL { ?property rdfs:range ?range }\n}\nORDER BY ?property`,
-    run: () => ({type:'single', label:'Protégé SPARQL 탭에서 실행하세요 (22개 프로퍼티)', value:'📋', unit:'OWL'})
+    run: D => ({type:'table', title:'데이터타입 프로퍼티 (22개)', headers:['프로퍼티','도메인','타입'],
+      rows:[['hasBeverageName','BeverageMenu','xsd:string'],['hasCategory','BeverageMenu','xsd:string'],['hasCalories','BeverageMenu','xsd:integer'],['hasCaffeineContent','BeverageMenu','xsd:integer'],['hasRating','BeverageMenu','xsd:decimal'],['hasPriceSmall','BeverageMenu','xsd:decimal'],['hasPriceMedium','BeverageMenu','xsd:decimal'],['hasPriceLarge','BeverageMenu','xsd:decimal'],['hasTemperature','BeverageMenu','xsd:string'],['hasPrice','CoffeeBrand','xsd:decimal'],['hasQualityGrade','CoffeeBrand','xsd:string'],['hasPriceSegment','CoffeeBrand','xsd:string'],['hasProcessingMethod','CoffeeBrand','xsd:string'],['harvestYear','Harvest','xsd:integer'],['harvestSeason','Harvest','xsd:string'],['hasCO2Emission','Farm','xsd:decimal'],['hasLatitude','Port/Farm','xsd:double'],['hasLongitude','Port/Farm','xsd:double'],['hasCapacity','Port','xsd:integer'],['hasName','Port','xsd:string'],['hasCity','Port','xsd:string'],['hasCountry','Port','xsd:string']]})
   },
 
   /* ── 2. 음료 메뉴 (추가) ── */
@@ -1441,13 +1444,21 @@ ORDER BY DESC(?co2)`,
     match: q => /(칼로리|calorie).*(이하|under|low|200)/i.test(q),
     title: '칼로리 200 이하 음료',
     sparql: NS+`SELECT ?name ?calories ?caffeine ?temperature\nWHERE {\n    ?beverage rdf:type cf:BeverageMenu .\n    ?beverage cf:hasBeverageName ?name .\n    ?beverage cf:hasCalories ?calories .\n    OPTIONAL { ?beverage cf:hasCaffeineContent ?caffeine }\n    OPTIONAL { ?beverage cf:hasTemperature ?temperature }\n    FILTER(?calories <= 200)\n}\nORDER BY ?calories`,
-    run: () => ({type:'single', label:'Protégé SPARQL 탭에서 실행하세요', value:'📋', unit:'BeverageMenu'})
+    run: D => {
+      const bev=(D.beverages||[]).filter(b=>b.calories<=200).sort((a,b)=>a.calories-b.calories);
+      return{type:'table', title:`칼로리 200 이하 음료 ${bev.length}건`, headers:['메뉴','칼로리','카페인(mg)','온도','카테고리'],
+        rows:bev.map(b=>[b.name.replace(/_/g,' '),b.calories,b.caffeine,b.temp,b.category])};
+    }
   },
   {
     match: q => /(고평점)/i.test(q) || (/(평점|rating|별점)/i.test(q) && /(높|이상|top|high|4\.5)/i.test(q)),
     title: '평점 4.5 이상의 고평점 음료',
     sparql: NS+`SELECT ?name ?rating ?category ?priceSmall\nWHERE {\n    ?beverage rdf:type cf:BeverageMenu .\n    ?beverage cf:hasBeverageName ?name .\n    ?beverage cf:hasRating ?rating .\n    OPTIONAL { ?beverage cf:hasCategory ?category }\n    OPTIONAL { ?beverage cf:hasPriceSmall ?priceSmall }\n    FILTER(?rating >= 4.5)\n}\nORDER BY DESC(?rating)`,
-    run: () => ({type:'single', label:'Protégé SPARQL 탭에서 실행하세요', value:'📋', unit:'BeverageMenu'})
+    run: D => {
+      const bev=(D.beverages||[]).filter(b=>b.rating>=4.5).sort((a,b)=>b.rating-a.rating);
+      return{type:'table', title:`고평점 음료 ${bev.length}건 (4.5★ 이상)`, headers:['메뉴','평점','카테고리','가격(S)','칼로리'],
+        rows:bev.map(b=>[b.name.replace(/_/g,' '),b.rating+'★',b.category,b.price_s?'$'+b.price_s:'—',b.calories])};
+    }
   },
   {
     match: q => /(특정|specific).*(음료|beverage).*(상세|detail|정보)|(음료).*(상세|detail)/i.test(q),
@@ -1472,7 +1483,11 @@ ORDER BY DESC(?co2)`,
     match: q => /(우유|milk|밀크).*(포함|contain|음료|beverage)|(재료|ingredient).*(포함|음료)/i.test(q),
     title: '특정 재료를 포함하는 음료 (Milk 계열)',
     sparql: NS+`SELECT ?beverageName ?ingredient\nWHERE {\n    ?beverage rdf:type cf:BeverageMenu .\n    ?beverage cf:hasBeverageName ?beverageName .\n    ?beverage cf:containsIngredient ?ingredient .\n    FILTER(CONTAINS(STR(?ingredient), "Milk"))\n}\nORDER BY ?beverageName`,
-    run: () => ({type:'single', label:'Protégé SPARQL 탭에서 실행하세요', value:'📋', unit:'BeverageMenu'})
+    run: D => {
+      const bev=(D.beverages||[]).filter(b=>b.ingredients.some(i=>/Milk/i.test(i)));
+      return{type:'table', title:`우유 포함 음료 ${bev.length}건`, headers:['메뉴','재료','칼로리','온도'],
+        rows:bev.map(b=>[b.name.replace(/_/g,' '),b.ingredients.join(', ').replace(/_/g,' '),b.calories,b.temp])};
+    }
   },
 
   /* ── 3. 커피 브랜드 (추가) ── */
@@ -1498,7 +1513,8 @@ ORDER BY DESC(?co2)`,
     match: q => /(수확|harvest).*(정보|info|시즌|season|연도|year)|(브랜드).*(수확)/i.test(q),
     title: '커피 브랜드의 수확 정보',
     sparql: NS+`SELECT ?brand ?harvest ?year ?season\nWHERE {\n    ?brand rdf:type cf:CoffeeBrand .\n    ?brand cf:fromHarvest ?harvest .\n    OPTIONAL { ?harvest cf:harvestYear ?year }\n    OPTIONAL { ?harvest cf:harvestSeason ?season }\n}\nORDER BY ?brand`,
-    run: () => ({type:'single', label:'Protégé SPARQL 탭에서 실행하세요', value:'📋', unit:'CoffeeBrand'})
+    run: D => ({type:'table', title:'브랜드별 수확 정보', headers:['브랜드','수확 연도','수확 시즌','수확 방식'],
+      rows:(D.harvests||[]).map(h=>[h.brand.replace(/_/g,' '),h.year,h.season,h.method])})
   },
 
   /* ── 4. 커피 체인 (추가) ── */
@@ -1506,19 +1522,28 @@ ORDER BY DESC(?co2)`,
     match: q => /(체인).*(운영|도시|city|operates)|(운영.*도시)/i.test(q),
     title: '모든 커피 체인과 운영 도시',
     sparql: NS+`SELECT ?chain ?city\nWHERE {\n    ?chain rdf:type cf:CoffeeChain .\n    ?chain cf:operatesIn ?city .\n}\nORDER BY ?chain`,
-    run: () => ({type:'single', label:'Protégé SPARQL 탭에서 실행하세요', value:'📋', unit:'CoffeeChain'})
+    run: D => ({type:'table', title:`커피 체인 ${(D.chains_detail||[]).length}개`, headers:['체인','도시','국가','등급'],
+      rows:(D.chains_detail||[]).map(c=>[c.id.replace(/_/g,' '),c.city,c.country,c.segment])})
   },
   {
     match: q => /(프리미엄).*(가격|price).*(체인|chain)|(premium).*(chain)/i.test(q),
     title: '프리미엄 가격대 체인',
     sparql: NS+`SELECT ?chain ?market\nWHERE {\n    ?chain rdf:type cf:CoffeeChain .\n    ?chain cf:chainPriceSegment cf:PP_Premium .\n    OPTIONAL { ?chain cf:targetMarket ?market }\n}\nORDER BY ?chain`,
-    run: () => ({type:'single', label:'Protégé SPARQL 탭에서 실행하세요', value:'📋', unit:'CoffeeChain'})
+    run: D => {
+      const prem=(D.chains_detail||[]).filter(c=>c.segment==='Premium'||c.segment==='Luxury');
+      return{type:'table', title:`프리미엄/럭셔리 체인 ${prem.length}개`, headers:['체인','등급','도시','국가'],
+        rows:prem.map(c=>[c.id.replace(/_/g,' '),c.segment,c.city,c.country])};
+    }
   },
   {
     match: q => /(경쟁|compete|라이벌|rival).*(관계|체인|chain|분석)/i.test(q),
     title: '체인 경쟁 관계 분석',
     sparql: NS+`SELECT ?chain1 ?chain2\nWHERE {\n    ?chain1 cf:competesWithChain ?chain2 .\n}\nORDER BY ?chain1`,
-    run: () => ({type:'single', label:'Protégé SPARQL 탭에서 실행하세요', value:'📋', unit:'CoffeeChain'})
+    run: D => {
+      const rows=(D.chains_detail||[]).filter(c=>c.competitors&&c.competitors.length>0)
+        .map(c=>[c.id.replace(/_/g,' '),c.segment,c.competitors.map(x=>x.replace(/_/g,' ')).join(', ')]);
+      return{type:'table', title:`경쟁 관계 ${rows.length}건`, headers:['체인','등급','경쟁 체인'], rows};
+    }
   },
   {
     match: q => /(체인).*(창고|warehouse)|(창고).*(체인|운영)/i.test(q),
@@ -1544,7 +1569,14 @@ ORDER BY DESC(?co2)`,
     match: q => /(협동조합|cooperative|coop|조합).*(농장|farm|소속)/i.test(q),
     title: '농장의 협동조합 소속 관계',
     sparql: NS+`SELECT ?farm ?cooperative\nWHERE {\n    ?farm rdf:type cf:Farm .\n    ?farm cf:memberOfCoop ?cooperative .\n}\nORDER BY ?cooperative ?farm`,
-    run: () => ({type:'single', label:'Protégé SPARQL 탭에서 실행하세요', value:'📋', unit:'Supply Chain'})
+    run: D => {
+      const coops={'Yirgacheffe_Coop':['Ethiopia'],'Sidamo_Farmers_Union':['Ethiopia'],'FNC_Colombia':['Colombia'],'Coocafe':['Costa Rica'],'ANACAFE':['Guatemala'],'IHCAFE':['Honduras'],'JNC_Peru':['Peru'],'KCCE':['Kenya'],'NUCAFE':['Rwanda'],'KNCU':['Tanzania']};
+      const rows=D.farm_map.map(f=>{
+        const c=Object.entries(coops).find(([k,v])=>v.includes(f.country));
+        return[f.name,f.country,c?c[0].replace(/_/g,' '):'(직거래)'];
+      });
+      return{type:'table', title:`농장-협동조합 관계 ${rows.length}건`, headers:['농장','국가','협동조합'], rows};
+    }
   },
   {
     match: q => /(브로커|broker).*(중개|활동|매입|purchase)/i.test(q),
@@ -1570,13 +1602,15 @@ ORDER BY DESC(?co2)`,
     match: q => /(로스터|roaster).*(가공|브랜드|roast)/i.test(q),
     title: '로스터와 가공 커피 브랜드',
     sparql: NS+`SELECT ?roaster ?brand\nWHERE {\n    ?roaster rdf:type cf:Roaster .\n    ?roaster cf:roasts ?brand .\n}\nORDER BY ?roaster`,
-    run: () => ({type:'single', label:'Protégé SPARQL 탭에서 실행하세요', value:'📋', unit:'Supply Chain'})
+    run: D => ({type:'table', title:'로스터 → 브랜드', headers:['로스터','국가','가공 브랜드'],
+      rows:[['Probat Roasters','Germany','Santos Premium, Bourbon Santos, Colombian Supremo'],['Diedrich Roasters','USA','Yirgacheffe Special, Kenya AA, Tarrazu Reserve'],['Loring Roasters','USA','Huila Reserve, Sidamo Natural, Peruvian Organic'],['Giesen Roasters','Netherlands','Java Estate, Sumatra Mandheling'],['Buhler Roasters','Switzerland','Antigua Premium, Honduras SHG, Robusta Select']]})
   },
   {
     match: q => /(가공소|processing.?mill|밀).*(처리|품종|process)/i.test(q),
     title: '가공소(ProcessingMill)와 처리하는 품종',
     sparql: NS+`SELECT ?mill ?variety\nWHERE {\n    ?mill rdf:type cf:ProcessingMill .\n    ?mill cf:processes ?variety .\n}\nORDER BY ?mill`,
-    run: () => ({type:'single', label:'Protégé SPARQL 탭에서 실행하세요', value:'📋', unit:'Supply Chain'})
+    run: D => ({type:'table', title:'가공소 → 처리 품종', headers:['가공소','국가','처리 방식','처리 품종'],
+      rows:[['Sidamo Mill','Ethiopia','Washed/Natural','Arabica Typica, Sidamo Heirloom'],['Huila Mill','Colombia','Washed','Arabica Caturra, Castillo'],['Santos Mill','Brazil','Natural/Pulped Natural','Arabica Bourbon, Mundo Novo'],['Kerinci Mill','Indonesia','Wet Hulled','Arabica Lini S, Timor Hybrid'],['Nyeri Mill','Kenya','Washed','Arabica SL28, SL34'],['Antigua Mill','Guatemala','Washed','Arabica Catuai, Bourbon']]})
   },
   {
     match: q => /(항구).*(간|between|배송|shipping|경로|route)/i.test(q),
@@ -1617,13 +1651,15 @@ ORDER BY DESC(?co2)`,
     match: q => /(국가).*(수도|capital)|(수도).*(국가)/i.test(q),
     title: '국가와 수도',
     sparql: NS+`SELECT ?country ?capital\nWHERE {\n    ?country rdf:type cf:Country .\n    ?country cf:hasMainCapital ?capital .\n}\nORDER BY ?country`,
-    run: () => ({type:'single', label:'Protégé SPARQL 탭에서 실행하세요', value:'📋', unit:'Country'})
+    run: D => ({type:'table', title:'커피 생산국과 수도', headers:['국가','수도','수출 대상국'],
+      rows:(D.countries_detail||[]).map(c=>[c.name,c.capital,c.exports_to.join(', ')])})
   },
   {
     match: q => /(도시|city).*(재배|cultivat|품종|variety)|(품종).*(도시|city)/i.test(q),
     title: '특정 도시에서 재배되는 커피 품종',
     sparql: NS+`SELECT ?variety ?city\nWHERE {\n    ?variety rdf:type cf:CoffeeVariety .\n    ?variety cf:isMainlyCultivatedIn ?city .\n}\nORDER BY ?city`,
-    run: () => ({type:'single', label:'Protégé SPARQL 탭에서 실행하세요', value:'📋', unit:'CoffeeVariety'})
+    run: D => ({type:'table', title:'도시별 재배 품종', headers:['품종','재배 도시','국가'],
+      rows:(D.varieties||[]).map(v=>[v.name,v.city,v.country])})
   },
 
   /* ── 7. 장비 및 매장 운영 ── */
@@ -1631,25 +1667,29 @@ ORDER BY DESC(?co2)`,
     match: q => /(커피숍|매장|shop).*(장비|equipment)/i.test(q),
     title: '커피숍의 장비 현황',
     sparql: NS+`SELECT ?shop ?equipment\nWHERE {\n    ?shop rdf:type cf:CoffeeShop .\n    ?shop cf:usesEquipment ?equipment .\n}\nORDER BY ?shop`,
-    run: () => ({type:'single', label:'Protégé SPARQL 탭에서 실행하세요', value:'📋', unit:'CoffeeShop'})
+    run: D => ({type:'table', title:`커피숍 장비 현황 ${(D.coffee_shops||[]).length}개 매장`, headers:['매장','체인','장비'],
+      rows:(D.coffee_shops||[]).map(s=>[s.id.replace(/_/g,' '),s.chain.replace(/_/g,' '),s.equipment.map(e=>e.replace(/_/g,' ')).join(', ')])})
   },
   {
     match: q => /(장비|equipment).*(공급업체|supplier)|(공급업체).*(장비)/i.test(q),
     title: '장비와 공급업체 관계',
     sparql: NS+`SELECT ?equipment ?supplier\nWHERE {\n    ?equipment rdf:type cf:Equipment .\n    ?equipment cf:isSuppliedBy ?supplier .\n}\nORDER BY ?equipment`,
-    run: () => ({type:'single', label:'Protégé SPARQL 탭에서 실행하세요', value:'📋', unit:'Equipment'})
+    run: D => ({type:'table', title:'장비-공급업체 관계', headers:['장비 유형','모델','공급업체','국가'],
+      rows:[['EspressoMachine','La Marzocco Linea','La Marzocco','Italy'],['EspressoMachine','Synesso MVP','Synesso','USA'],['EspressoMachine','Nuova Simonelli','Nuova Simonelli','Italy'],['EspressoMachine','DeLonghi Pro','DeLonghi','Italy'],['Grinder','Mahlkönig EK43','Mahlkönig','Germany'],['Grinder','Baratza Forte','Baratza','USA'],['Grinder','Mazzer Major','Mazzer','Italy'],['WaterFilter','Brita Purity','Brita','Germany'],['WaterFilter','Everpure','Everpure','USA'],['IceMaker','Hoshizaki KM','Hoshizaki','Japan'],['IceMaker','Scotsman NDE','Scotsman','USA'],['RoasterMachine','Probat P25','Probat','Germany']]})
   },
   {
     match: q => /(매장|shop).*(소모품|consumable)|(소모품)/i.test(q),
     title: '매장이 사용하는 소모품',
     sparql: NS+`SELECT ?shop ?consumable\nWHERE {\n    ?shop rdf:type cf:CoffeeShop .\n    ?shop cf:usesConsumable ?consumable .\n}\nORDER BY ?shop`,
-    run: () => ({type:'single', label:'Protégé SPARQL 탭에서 실행하세요', value:'📋', unit:'CoffeeShop'})
+    run: D => ({type:'table', title:`매장 소모품`, headers:['매장','체인','소모품'],
+      rows:(D.coffee_shops||[]).map(s=>[s.id.replace(/_/g,' '),s.chain.replace(/_/g,' '),s.consumables.map(c=>c.replace(/_/g,' ')).join(', ')])})
   },
   {
     match: q => /(pos|포스).*(시스템|system)|(매장).*(pos)/i.test(q),
     title: '매장의 POS 시스템',
     sparql: NS+`SELECT ?shop ?pos\nWHERE {\n    ?shop rdf:type cf:CoffeeShop .\n    ?shop cf:usesPosSystem ?pos .\n}\nORDER BY ?shop`,
-    run: () => ({type:'single', label:'Protégé SPARQL 탭에서 실행하세요', value:'📋', unit:'CoffeeShop'})
+    run: D => ({type:'table', title:'매장 POS 시스템', headers:['매장','체인','POS 시스템'],
+      rows:(D.coffee_shops||[]).map(s=>[s.id.replace(/_/g,' '),s.chain.replace(/_/g,' '),s.pos.replace(/_/g,' ')])})
   },
 
   /* ── 8. 인증 및 지속가능성 (추가) ── */
@@ -1657,7 +1697,8 @@ ORDER BY DESC(?co2)`,
     match: q => /(인증.*기관|certification.*body|발급.*인증)/i.test(q),
     title: '인증 기관과 발급 인증',
     sparql: NS+`SELECT ?body ?certification\nWHERE {\n    ?body rdf:type cf:CertificationBody .\n    ?body cf:issuesCertification ?certification .\n}\nORDER BY ?body`,
-    run: () => ({type:'single', label:'Protégé SPARQL 탭에서 실행하세요', value:'📋', unit:'CertificationBody'})
+    run: D => ({type:'table', title:'인증 기관', headers:['인증 기관','본사','발급 인증'],
+      rows:(D.certification_bodies||[]).map(c=>[c.label,c.hq,c.certifications.map(x=>x.replace(/_/g,' ')).join(', ')])})
   },
   {
     match: q => /(농장).*(지속가능|sustainability|지표|metric|impact)/i.test(q),
@@ -1697,13 +1738,22 @@ ORDER BY DESC(?co2)`,
     match: q => /(평균.*가격|avg.*price).*(높|카테고리|category)/i.test(q),
     title: '평균 가격이 가장 높은 음료 카테고리',
     sparql: NS+`SELECT ?category (AVG(?price) AS ?avgPrice)\nWHERE {\n    ?beverage rdf:type cf:BeverageMenu .\n    ?beverage cf:hasCategory ?category .\n    ?beverage cf:hasPriceMedium ?price .\n}\nGROUP BY ?category\nORDER BY DESC(?avgPrice)`,
-    run: () => ({type:'single', label:'Protégé SPARQL 탭에서 실행하세요', value:'📋', unit:'BeverageMenu'})
+    run: D => {
+      const cats={};
+      (D.beverages||[]).forEach(b=>{if(b.price_s){if(!cats[b.category])cats[b.category]={sum:0,cnt:0};cats[b.category].sum+=b.price_s;cats[b.category].cnt++;}});
+      const rows=Object.entries(cats).map(([c,v])=>[c,'$'+(v.sum/v.cnt).toFixed(2),v.cnt]).sort((a,b)=>parseFloat(b[1].slice(1))-parseFloat(a[1].slice(1)));
+      return{type:'table', title:'카테고리별 평균 가격', headers:['카테고리','평균 가격(S)','음료 수'], rows};
+    }
   },
   {
     match: q => /(카페인|caffeine).*(함량|content|순위|rank|최고|최저|높|낮)/i.test(q),
     title: '카페인 함량 최고/최저 음료',
     sparql: NS+`SELECT ?name ?caffeine\nWHERE {\n    ?beverage rdf:type cf:BeverageMenu .\n    ?beverage cf:hasBeverageName ?name .\n    ?beverage cf:hasCaffeineContent ?caffeine .\n}\nORDER BY DESC(?caffeine)`,
-    run: () => ({type:'single', label:'Protégé SPARQL 탭에서 실행하세요', value:'📋', unit:'BeverageMenu'})
+    run: D => {
+      const bev=[...(D.beverages||[])].sort((a,b)=>b.caffeine-a.caffeine);
+      return{type:'table', title:`카페인 함량 순위 (${bev.length}개 음료)`, headers:['메뉴','카페인(mg)','칼로리','카테고리'],
+        rows:bev.map(b=>[b.name.replace(/_/g,' '),b.caffeine+'mg',b.calories,b.category])};
+    }
   },
   {
     match: q => /(다중|multiple|여러).*(인증|cert).*(브랜드)|(두.*개.*이상).*(인증)/i.test(q),
@@ -1737,7 +1787,10 @@ ORDER BY DESC(?co2)`,
     match: q => /(construct|그래프.*생성|원산지.*그래프)/i.test(q),
     title: 'CONSTRUCT: 커피 브랜드와 원산지 관계 그래프 생성',
     sparql: NS+`CONSTRUCT {\n    ?brand cf:sourcedFrom ?farm .\n    ?farm cf:cultivates ?variety .\n}\nWHERE {\n    ?brand rdf:type cf:CoffeeBrand .\n    ?brand cf:sourcedFrom ?farm .\n    ?farm cf:cultivates ?variety .\n}`,
-    run: () => ({type:'single', label:'Protégé SPARQL 탭에서 실행하세요 (CONSTRUCT)', value:'📋', unit:'RDF Graph'})
+    run: D => {
+      const rows=D.farm_map.filter(f=>f.brands.length>0).flatMap(f=>f.brands.map(b=>[b.replace(/_/g,' '),'sourcedFrom',f.name,'→ '+f.country]));
+      return{type:'table', title:`CONSTRUCT 결과: 브랜드-원산지 그래프 (${rows.length}트리플)`, headers:['브랜드','관계','농장','국가'], rows:rows.slice(0,30)};
+    }
   },
   {
     match: q => /(fair.*trade).*(인증.*확인|ask|검증)|(인증.*확인).*(fair)/i.test(q),
