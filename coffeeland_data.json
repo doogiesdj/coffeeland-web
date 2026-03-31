@@ -470,7 +470,11 @@
   ],
   "logistics_providers": [
     {"id": "LP_GlobalBean", "label": "Global Bean Logistics", "hq": "USA", "from": ["PP_Santos","PP_Mombasa","PP_HoChiMinh","PP_Cartagena","PP_PuertoCortes"], "to": ["CP_LongBeach","CP_NewOrleans","CP_Rotterdam","CP_Hamburg","CP_Felixstowe"]},
-    {"id": "LP_Mitsubishi", "label": "Mitsubishi Corp", "hq": "Japan", "from": ["PP_Santos","PP_Mombasa","PP_TanjungPriok","PP_HoChiMinh"], "to": ["CP_Tokyo","CP_Busan","CP_Sydney","CP_Singapore","CP_Genoa","CP_Antwerp","CP_Valencia"]}
+    {"id": "LP_Mitsubishi", "label": "Mitsubishi Corp", "hq": "Japan", "from": ["PP_Santos","PP_Mombasa","PP_TanjungPriok","PP_HoChiMinh"], "to": ["CP_Tokyo","CP_Busan","CP_Sydney","CP_Singapore","CP_Genoa","CP_Antwerp","CP_Valencia"]},
+    {"id": "LP_Maersk", "label": "Maersk Line", "hq": "Denmark", "from": ["PP_Santos","PP_Cartagena","PP_PuertoCortes"], "to": ["CP_Rotterdam","CP_Hamburg","CP_Antwerp","CP_Felixstowe"]},
+    {"id": "LP_MSC", "label": "MSC Mediterranean", "hq": "Switzerland", "from": ["PP_Mombasa","PP_Santos","PP_Cartagena"], "to": ["CP_Genoa","CP_Valencia","CP_Antwerp","CP_NewOrleans","CP_LongBeach"]},
+    {"id": "LP_Bollore", "label": "Bolloré Logistics", "hq": "France", "from": ["PP_Mombasa","PP_Santos"], "to": ["CP_Rotterdam","CP_Genoa","CP_Hamburg","CP_Felixstowe"]},
+    {"id": "LP_NYK", "label": "NYK Line", "hq": "Japan", "from": ["PP_TanjungPriok","PP_HoChiMinh","PP_Mombasa"], "to": ["CP_Tokyo","CP_Busan","CP_Singapore","CP_Sydney"]}
   ],
   "farm_export_port": {
     "Colombia": "PP_Cartagena",
