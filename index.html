@@ -945,7 +945,7 @@ WHERE {
   },
   /* ── 메뉴 원두 추적 ── */
   {
-    match: q => /(카푸치노|cappuccino|카페라떼|caffe.?latte|라떼|latte|에스프레소|espresso|콜드브루|cold.?brew|아메리카노|americano|플랫|flat.?white|마키아토|macchiato|에어로프레스|aeropress)/i.test(q) && !/(기반|카테고리|category)/i.test(q),
+    match: q => /(카푸치노|cappuccino|카페라떼|caffe.?latte|라떼|latte|에스프레소|espresso|콜드브루|cold.?brew|아메리카노|americano|플랫|flat.?white|마키아토|macchiato|에어로프레스|aeropress|리스트레토|ristretto|룽고|lungo|도피오|doppio|코르타도|cortado|아포가토|affogato|모카|mocha|프라푸치노|frappuccino|달고나|dalgona|아인슈페너|einspanner|터키|turkish|모카포트|moka.?pot|차이|chai|말차|matcha|디카페인|decaf|비엔나|vienna|아이리시|irish|봄본|bombon|셰케라토|shakerato)/i.test(q) && !/(기반|카테고리|category)/i.test(q),
     title: '메뉴 원두 추적',
     sparql: NS+`SELECT ?menu ?brand ?farm ?country
 WHERE {
@@ -956,7 +956,7 @@ WHERE {
     FILTER(CONTAINS(LCASE(STR(?menu)), "{MENU}"))
 }`,
     run: (D,q) => {
-      const MM={카푸치노:'Cappuccino',cappuccino:'Cappuccino',카페라떼:'Caffe_Latte','카페 라떼':'Caffe_Latte','caffe latte':'Caffe_Latte','caffe_latte':'Caffe_Latte',라떼:'Caffe_Latte',latte:'Caffe_Latte',에스프레소:'Espresso',espresso:'Espresso',콜드브루:'Cold_Brew','cold brew':'Cold_Brew',아메리카노:'Americano',americano:'Americano','플랫 화이트':'Flat_White','flat white':'Flat_White',마키아토:'Macchiato',macchiato:'Macchiato',에어로프레스:'Aeropress',aeropress:'Aeropress'};
+      const MM={카푸치노:'Cappuccino',cappuccino:'Cappuccino',카페라떼:'Caffe_Latte','카페 라떼':'Caffe_Latte','caffe latte':'Caffe_Latte','caffe_latte':'Caffe_Latte',라떼:'Caffe_Latte',latte:'Caffe_Latte',에스프레소:'Espresso',espresso:'Espresso',콜드브루:'Cold_Brew','cold brew':'Cold_Brew',아메리카노:'Americano',americano:'Americano','플랫 화이트':'Flat_White','flat white':'Flat_White',마키아토:'Macchiato',macchiato:'Macchiato',에어로프레스:'Aeropress',aeropress:'Aeropress',리스트레토:'Ristretto',ristretto:'Ristretto',룽고:'Lungo',lungo:'Lungo',도피오:'Doppio',doppio:'Doppio',코르타도:'Cortado',cortado:'Cortado',아포가토:'Affogato',affogato:'Affogato',모카:'Mocha',mocha:'Mocha',프라푸치노:'Frappuccino',frappuccino:'Frappuccino',달고나:'Dalgona_Coffee',dalgona:'Dalgona_Coffee',아인슈페너:'Einspanner',einspanner:'Einspanner',터키:'Turkish_Coffee',turkish:'Turkish_Coffee','모카포트':'Moka_Pot','moka pot':'Moka_Pot',차이:'Chai_Latte',chai:'Chai_Latte',말차:'Matcha_Latte',matcha:'Matcha_Latte',디카페인:'Decaf_Latte',decaf:'Decaf_Latte',비엔나:'Vienna_Coffee',vienna:'Vienna_Coffee',아이리시:'Irish_Coffee',irish:'Irish_Coffee',봄본:'Cafe_Bombon',bombon:'Cafe_Bombon',셰케라토:'Shakerato',shakerato:'Shakerato','핫초코':'Hot_Chocolate','hot chocolate':'Hot_Chocolate','허니 라떼':'Honey_Latte','honey latte':'Honey_Latte','카페오레':'Cafe_au_Lait','cafe au lait':'Cafe_au_Lait','콘파나':'Espresso_Con_Panna','con panna':'Espresso_Con_Panna'};
       let mn=null;
       const ql=q.toLowerCase();
       for(const[k,v]of Object.entries(MM)){if(ql.includes(k)){mn=v;break;}}
@@ -1434,7 +1434,7 @@ ORDER BY DESC(?co2)`,
     title: '에스프레소 기반 음료',
     sparql: NS+`SELECT ?beverage ?name ?caffeine ?calories\nWHERE {\n    ?beverage rdf:type cf:BeverageMenu .\n    ?beverage cf:hasCategory ?category .\n    ?beverage cf:hasBeverageName ?name .\n    OPTIONAL { ?beverage cf:hasCaffeineContent ?caffeine }\n    OPTIONAL { ?beverage cf:hasCalories ?calories }\n    FILTER(CONTAINS(?category, "Espresso"))\n}\nORDER BY ?name`,
     run: D => {
-      const esp=['Espresso','Double_Espresso','Americano','Iced_Americano','Cappuccino','Caffe_Latte','Flat_White','Cortado','Macchiato','Caramel_Macchiato','Mocha','Iced_Mocha','Affogato','Vanilla_Latte','Iced_Latte'];
+      const esp=['Espresso','Double_Espresso','Americano','Iced_Americano','Cappuccino','Caffe_Latte','Flat_White','Cortado','Macchiato','Caramel_Macchiato','Mocha','Iced_Mocha','Affogato','Vanilla_Latte','Iced_Latte','Ristretto','Lungo','Cafe_au_Lait','Espresso_Con_Panna','Doppio'];
       const menus=[...new Set(D.trace.map(t=>t.menu))].filter(m=>esp.includes(m)).sort();
       const rows=menus.map(m=>{const bs=[...new Set(D.trace.filter(t=>t.menu===m).map(t=>t.brand.replace(/_/g,' ')))]; return[m.replace(/_/g,' '), bs.join(', ')];});
       return{type:'table', title:`에스프레소 기반 음료 ${rows.length}건`, headers:['메뉴','사용 브랜드'], rows};
@@ -1716,7 +1716,7 @@ ORDER BY DESC(?co2)`,
     sparql: NS+`SELECT ?category (COUNT(?beverage) AS ?count)\nWHERE {\n    ?beverage rdf:type cf:BeverageMenu .\n    ?beverage cf:hasCategory ?category .\n}\nGROUP BY ?category\nORDER BY DESC(?count)`,
     run: D => {
       const all=[...new Set(D.trace.map(t=>t.menu))];
-      const esp=['Espresso','Double_Espresso','Americano','Iced_Americano','Cappuccino','Caffe_Latte','Flat_White','Cortado','Macchiato','Caramel_Macchiato','Mocha','Iced_Mocha','Affogato','Vanilla_Latte','Iced_Latte'];
+      const esp=['Espresso','Double_Espresso','Americano','Iced_Americano','Cappuccino','Caffe_Latte','Flat_White','Cortado','Macchiato','Caramel_Macchiato','Mocha','Iced_Mocha','Affogato','Vanilla_Latte','Iced_Latte','Ristretto','Lungo','Cafe_au_Lait','Espresso_Con_Panna','Doppio'];
       const alt=['Aeropress','French_Press','Pour_Over'];
       const cold=['Cold_Brew','Nitro_Cold_Brew'];
       const eC=all.filter(m=>esp.includes(m)).length, aC=all.filter(m=>alt.includes(m)).length, cC=all.filter(m=>cold.includes(m)).length;
