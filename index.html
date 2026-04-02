@@ -299,6 +299,16 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg3);color:var(
     </div>
   </div>
 
+  <!-- Brand popup modal -->
+  <div id="brandPopup" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.6);z-index:9999;align-items:center;justify-content:center" onclick="if(event.target===this)this.style.display='none'">
+    <div style="background:var(--bg2,#1e1b16);border-radius:12px;padding:24px;max-width:600px;width:90%;max-height:80vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.5);position:relative">
+      <button onclick="document.getElementById('brandPopup').style.display='none'" style="position:absolute;top:10px;right:14px;background:none;border:none;color:#aaa;font-size:20px;cursor:pointer">&times;</button>
+      <div id="brandPopupTitle" style="font-size:16px;font-weight:700;color:var(--text,#f2ece4);margin-bottom:16px"></div>
+      <div style="height:320px"><canvas id="brandPopupChart"></canvas></div>
+      <div id="brandPopupInfo" style="margin-top:14px;font-size:12px;line-height:1.7;color:#b8a88a"></div>
+    </div>
+  </div>
+
   <div class="sec" id="sec-brands">
     <div class="card" style="margin-bottom:14px">
       <div class="card-title">브랜드별 가격 비교 (USD/kg)</div>
@@ -670,7 +680,98 @@ function renderBrands(brands){
     const el=b.esg.co2>=8?'CO₂ 저감':b.esg.co2<=3?'고위험':'보통';
     return`<tr><td style="font-weight:500;color:var(--text)">${b.name}</td><td><div class="pb"><div class="pt"><div class="pf" style="width:${pct}%"></div></div><span class="pn">$${b.price.toFixed(2)}</span></div></td><td>${bk(b.method,'bx')}</td><td>${b.segment!=='—'?bk(b.segment,sc):'—'}</td><td>${bk(el,ec)}</td><td style="font-size:11px;color:var(--text3)">${b.farms.join(', ')||'—'}</td></tr>`;
   }).join('');
-  document.getElementById('brandTable').innerHTML=`<thead><tr><th>브랜드</th><th>가격(USD/kg)</th><th>가공방식</th><th>등급</th><th>ESG</th><th>농장</th></tr></thead><tbody>${rows}</tbody>`;
+  document.getElementById('brandTable').innerHTML=`<thead><tr><th>브랜드</th><th>가격(USD/kg)</th><th style="cursor:pointer;text-decoration:underline dotted" onclick="showBrandPopup('method')">가공방식 &#128200;</th><th style="cursor:pointer;text-decoration:underline dotted" onclick="showBrandPopup('segment')">등급 &#128200;</th><th style="cursor:pointer;text-decoration:underline dotted" onclick="showBrandPopup('esg')">ESG &#128200;</th><th>농장</th></tr></thead><tbody>${rows}</tbody>`;
+}
+
+let brandPopupChart=null;
+function showBrandPopup(type){
+  const popup=document.getElementById('brandPopup');
+  const title=document.getElementById('brandPopupTitle');
+  const info=document.getElementById('brandPopupInfo');
+  const ctx=document.getElementById('brandPopupChart').getContext('2d');
+  if(brandPopupChart){brandPopupChart.destroy();brandPopupChart=null}
+  const brands=D.brands.filter(b=>b.price>0);
+
+  if(type==='segment'){
+    title.innerHTML='&#127942; 가격 등급별 브랜드 분포';
+    const segs={Luxury:0,Specialty:0,Premium:0,MidRange:0,Budget:0};
+    const segBrands={Luxury:[],Specialty:[],Premium:[],MidRange:[],Budget:[]};
+    brands.forEach(b=>{const s=b.segment||'—';if(segs[s]!==undefined){segs[s]++;segBrands[s].push(b.name)}});
+    const labels=Object.keys(segs);
+    const colors=['#9b59b6','#3498db','#e67e22','#2ecc71','#95a5a6'];
+    brandPopupChart=new Chart(ctx,{type:'pie',
+      data:{labels,datasets:[{data:Object.values(segs),backgroundColor:colors,borderColor:'rgba(0,0,0,.3)',borderWidth:2}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{color:'#a8987e',font:{size:12}}}}}
+    });
+    info.innerHTML='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'+labels.map((l,i)=>
+      '<div style="padding:8px;background:rgba(0,0,0,.15);border-radius:6px;border-left:3px solid '+colors[i]+'">'+
+      '<div style="font-weight:600;color:'+colors[i]+'">'+l+' ('+segs[l]+')</div>'+
+      '<div style="font-size:10px;margin-top:3px">'+segBrands[l].join(', ')+'</div></div>'
+    ).join('')+'</div>'+
+    '<div style="margin-top:10px;font-size:10.5px;color:#8a7e6a;border-top:1px solid rgba(255,255,255,.08);padding-top:8px">'+
+    '<b>Luxury:</b> $12-18+/kg (Geisha, Blue Mountain, Kona)<br>'+
+    '<b>Specialty:</b> $9.5-12/kg (SCA 80-85점)<br>'+
+    '<b>Premium:</b> $8-10.5/kg (명산지 싱글오리진)<br>'+
+    '<b>MidRange:</b> $6-8/kg (블렌드 및 상업용)<br>'+
+    '<b>Budget:</b> $3.5-6/kg (로부스타 및 저가 아라비카)</div>';
+  }
+  else if(type==='method'){
+    title.innerHTML='&#9881;&#65039; 가공방식별 브랜드 분포';
+    const methods={};
+    const methodBrands={};
+    brands.forEach(b=>{const m=b.method||'—';methods[m]=(methods[m]||0)+1;if(!methodBrands[m])methodBrands[m]=[];methodBrands[m].push(b.name)});
+    const labels=Object.keys(methods);
+    const mColors={'Washed':'#3498db','Natural':'#e67e22','Honey':'#f1c40f','GilingBasah WetHulled':'#8e44ad','PulpedNatural':'#1abc9c'};
+    const colors=labels.map(l=>mColors[l]||'#95a5a6');
+    brandPopupChart=new Chart(ctx,{type:'doughnut',
+      data:{labels:labels.map(l=>l.replace(/_/g,' ')),datasets:[{data:Object.values(methods),backgroundColor:colors,borderColor:'rgba(0,0,0,.3)',borderWidth:2}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{color:'#a8987e',font:{size:12}}}}}
+    });
+    const descs={'Washed':'수세식 — 체리 과육 제거 후 발효&#183;수세 처리. 깨끗하고 밝은 산미가 특징. 중남미, 동아프리카 대표 가공법.',
+      'Natural':'건식 — 체리 통째로 건조. 과일향이 풍부하고 바디감이 강함. 에티오피아, 브라질 전통 가공법.',
+      'Honey':'허니 — 과육 일부를 남기고 건조. Washed와 Natural의 중간 풍미. 코스타리카에서 발전.',
+      'GilingBasah WetHulled':'길링 바사 — 인도네시아 고유 습식탈곡법. 파치먼트 상태에서 탈곡. 허브, 흙향 특징. 수마트라 만델링 대표.',
+      'PulpedNatural':'펄프드 내추럴 — 과육 제거 후 점액질 잔존 상태로 건조. 브라질에서 주로 사용.'};
+    info.innerHTML=labels.map((l,i)=>
+      '<div style="padding:8px;background:rgba(0,0,0,.15);border-radius:6px;border-left:3px solid '+colors[i]+';margin-bottom:6px">'+
+      '<div style="font-weight:600;color:'+colors[i]+'">'+l.replace(/_/g,' ')+' ('+methods[l]+'개)</div>'+
+      '<div style="font-size:10.5px;margin-top:3px">'+(descs[l]||'')+'</div>'+
+      '<div style="font-size:10px;margin-top:3px;color:#8a7e6a">브랜드: '+methodBrands[l].join(', ')+'</div></div>'
+    ).join('');
+  }
+  else if(type==='esg'){
+    title.innerHTML='&#127793; ESG 등급별 브랜드 분포';
+    const esgGroups={'CO&#8322; 저감 (8+)':[],'보통 (4-7)':[],'고위험 (&#8804;3)':[]};
+    brands.forEach(b=>{
+      if(b.esg.co2>=8) esgGroups['CO&#8322; 저감 (8+)'].push(b.name);
+      else if(b.esg.co2<=3) esgGroups['고위험 (&#8804;3)'].push(b.name);
+      else esgGroups['보통 (4-7)'].push(b.name);
+    });
+    const labels=Object.keys(esgGroups);
+    const colors=['#2ecc71','#f39c12','#e74c3c'];
+    const vals=Object.values(esgGroups).map(v=>v.length);
+    brandPopupChart=new Chart(ctx,{type:'bar',
+      data:{labels,datasets:[{label:'브랜드 수',data:vals,backgroundColor:colors,borderRadius:8,borderSkipped:false}]},
+      options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',
+        scales:{x:{grid:{color:'rgba(255,255,255,.06)'},ticks:{color:'#6b5e4a'}},y:{grid:{display:false},ticks:{color:'#a8987e',font:{size:13}}}},
+        plugins:{legend:{display:false}}}
+    });
+    const certCount={};brands.forEach(b=>b.certs.forEach(c=>{certCount[c]=(certCount[c]||0)+1}));
+    info.innerHTML='<div style="margin-bottom:8px;font-weight:600;color:#d4a853">인증 보유 현황</div>'+
+      '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">'+
+      Object.entries(certCount).map(([c,n])=>
+        '<div style="padding:6px 10px;background:rgba(0,0,0,.15);border-radius:6px;font-size:11px">'+
+        '<span style="color:#5dbb85;font-weight:600">'+c.replace(/_/g,' ')+'</span> '+n+'개</div>'
+      ).join('')+'</div>'+
+      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">'+
+      labels.map((l,i)=>
+        '<div style="padding:8px;background:rgba(0,0,0,.15);border-radius:6px;border-left:3px solid '+colors[i]+'">'+
+        '<div style="font-weight:600;color:'+colors[i]+'">'+l+' ('+vals[i]+')</div>'+
+        '<div style="font-size:9.5px;margin-top:3px">'+esgGroups[l].join(', ')+'</div></div>'
+      ).join('')+'</div>';
+  }
+
+  popup.style.display='flex';
 }
 
 function renderFlow(nodes,links){
