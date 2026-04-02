@@ -918,35 +918,138 @@ function showBrandPopup(type){
     }).join('');
   }
   else if(type==='esg'){
-    title.innerHTML='&#127793; ESG 등급별 브랜드 분포';
-    const esgGroups={'CO&#8322; 저감 (8+)':[],'보통 (4-7)':[],'고위험 (&#8804;3)':[]};
+    title.innerHTML='&#127793; ESG &#46321;&#44553;&#48324; &#48652;&#47004;&#46300; &#48516;&#54252; (ESG Risk Distribution)';
+    const esgGroups={'CO&#8322; &#51200;&#44048; (8+)':[],'&#48372;&#53685; (4-7)':[],'&#44256;&#50948;&#54744; (&#8804;3)':[]};
     brands.forEach(b=>{
-      if(b.esg.co2>=8) esgGroups['CO&#8322; 저감 (8+)'].push(b.name);
-      else if(b.esg.co2<=3) esgGroups['고위험 (&#8804;3)'].push(b.name);
-      else esgGroups['보통 (4-7)'].push(b.name);
+      if(b.esg.co2>=8) esgGroups['CO&#8322; &#51200;&#44048; (8+)'].push(b.name);
+      else if(b.esg.co2<=3) esgGroups['&#44256;&#50948;&#54744; (&#8804;3)'].push(b.name);
+      else esgGroups['&#48372;&#53685; (4-7)'].push(b.name);
     });
     const labels=Object.keys(esgGroups);
     const colors=['#2ecc71','#f39c12','#e74c3c'];
     const vals=Object.values(esgGroups).map(v=>v.length);
     brandPopupChart=new Chart(ctx,{type:'bar',
-      data:{labels,datasets:[{label:'브랜드 수',data:vals,backgroundColor:colors,borderRadius:8,borderSkipped:false}]},
+      data:{labels,datasets:[{label:'&#48652;&#47004;&#46300; &#49688;',data:vals,backgroundColor:colors,borderRadius:8,borderSkipped:false}]},
       options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',
         scales:{x:{grid:{color:'rgba(255,255,255,.06)'},ticks:{color:'#6b5e4a'}},y:{grid:{display:false},ticks:{color:'#a8987e',font:{size:13}}}},
         plugins:{legend:{display:false}}}
     });
     const certCount={};brands.forEach(b=>b.certs.forEach(c=>{certCount[c]=(certCount[c]||0)+1}));
-    info.innerHTML='<div style="margin-bottom:8px;font-weight:600;color:#d4a853">인증 보유 현황</div>'+
+    info.innerHTML=
+      /* CO2 importance section */
+      '<div style="margin-bottom:12px;padding:12px;background:rgba(46,204,113,.08);border:1px solid rgba(46,204,113,.25);border-radius:8px">'+
+        '<div style="font-weight:700;font-size:13px;color:#2ecc71;margin-bottom:8px">&#127758; CO&#8322; &#51648;&#54364;&#51032; &#51473;&#50836;&#49457; (Why CO&#8322; Matters in Coffee)</div>'+
+        '<div style="font-size:11px;line-height:1.8;color:#b8a88a">'+
+          '<div style="margin-bottom:8px">&#52964;&#54588; &#49328;&#50629;&#51008; &#51204; &#49464;&#44228; &#50728;&#49892;&#44032;&#49828; &#48176;&#52636;&#51032; &#50557; <b>1~2%</b>&#47484; &#52264;&#51648;&#54633;&#45768;&#45796;. '+
+          '&#52964;&#54588; 1kg &#49373;&#49328; &#49884; &#54217;&#44512; <b>4.0~8.0 kg CO&#8322;e</b>&#44032; &#48176;&#52636;&#46104;&#47728;, &#51060;&#45716; &#51116;&#48176;(40%), &#44032;&#44277;(15%), &#50868;&#49569;(25%), &#47196;&#49828;&#54021;&#183;&#50976;&#53685;(20%)&#50640; &#44152;&#52432; &#48156;&#49373;&#54633;&#45768;&#45796;.</div>'+
+          '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">'+
+            '<div style="padding:8px;background:rgba(0,0,0,.15);border-radius:6px">'+
+              '<div style="color:#2ecc71;font-weight:600;font-size:10px;margin-bottom:4px">&#51200;&#53444;&#49548; &#50836;&#51064; (Low Carbon Factors)</div>'+
+              '<div style="font-size:10px">&#8226; &#50976;&#44592;&#45453; &#51116;&#48176; (&#54868;&#54617;&#48708;&#47308; &#48120;&#49324;&#50857;)<br>'+
+              '&#8226; &#44148;&#49885;(Natural) &#44032;&#44277; (&#50857;&#49688; &#51208;&#44048;)<br>'+
+              '&#8226; &#45800;&#44144;&#47532; &#50868;&#49569; &#46608;&#45716; &#54644;&#49345; &#50868;&#49569;<br>'+
+              '&#8226; &#53468;&#50577;&#44305; &#44148;&#51312; &#48143; &#51116;&#49373;&#50640;&#45320;&#51648; &#54876;&#50857;</div>'+
+            '</div>'+
+            '<div style="padding:8px;background:rgba(0,0,0,.15);border-radius:6px">'+
+              '<div style="color:#e74c3c;font-weight:600;font-size:10px;margin-bottom:4px">&#44256;&#53444;&#49548; &#50836;&#51064; (High Carbon Factors)</div>'+
+              '<div style="font-size:10px">&#8226; &#54868;&#54617; &#48708;&#47308;&#183;&#45453;&#50557; &#44284;&#45796; &#49324;&#50857;<br>'+
+              '&#8226; &#49688;&#49464;&#49885;(Washed) &#44032;&#44277; (&#45824;&#47049; &#50857;&#49688;)<br>'+
+              '&#8226; &#54637;&#44277; &#50868;&#49569; (&#54644;&#49345; &#45824;&#48708; 50&#48176; CO&#8322;)<br>'+
+              '&#8226; &#49328;&#47548; &#48268;&#52292; &#54980; &#52964;&#54588; &#51116;&#48176;&#51648; &#51204;&#54872;</div>'+
+            '</div>'+
+          '</div>'+
+        '</div>'+
+      '</div>'+
+
+      /* Scoring basis */
+      '<div style="margin-bottom:12px;padding:12px;background:rgba(155,89,182,.08);border:1px solid rgba(155,89,182,.25);border-radius:8px">'+
+        '<div style="font-weight:700;font-size:13px;color:#9b59b6;margin-bottom:8px">&#128200; ESG &#51216;&#49688; &#49328;&#51221; &#44540;&#44144; (Scoring Methodology)</div>'+
+        '<div style="font-size:11px;line-height:1.8;color:#b8a88a">'+
+          '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">'+
+            '<div style="padding:8px;background:rgba(0,0,0,.15);border-radius:6px">'+
+              '<div style="color:#2ecc71;font-weight:600;font-size:10px;margin-bottom:4px">CO&#8322; &#51200;&#44048; &#51648;&#54364; (0-10)</div>'+
+              '<div style="font-size:10px">&#45453;&#51109;&#51032; &#53444;&#49548; &#48176;&#52636;&#47049; &#50669;&#49688; &#44592;&#48152;:<br>'+
+              '&#8226; <b style="color:#2ecc71">10&#51216;</b>: &#8804;3.0 kg CO&#8322;/kg (&#51200;&#53444;&#49548; &#50864;&#49688;)<br>'+
+              '&#8226; <b style="color:#f39c12">6&#51216;</b>: 3.0~6.0 kg (&#48372;&#53685; &#49688;&#51456;)<br>'+
+              '&#8226; <b style="color:#e74c3c">2&#51216;</b>: &gt;6.0 kg (&#44256;&#53444;&#49548; &#47532;&#49828;&#53356;)<br>'+
+              '<span style="font-size:9px;color:#6b5e4a">&#44540;&#44144;: Quantis/ECF (2023) Product Environmental Footprint &#50672;&#44396;&#50640;&#49436; &#52964;&#54588; 1kg&#45817; &#54217;&#44512; 4.0 kg CO&#8322;e&#47484; &#44592;&#51456;&#51216;&#51004;&#47196; &#49444;&#51221;</span></div>'+
+            '</div>'+
+            '<div style="padding:8px;background:rgba(0,0,0,.15);border-radius:6px">'+
+              '<div style="color:#c8885a;font-weight:600;font-size:10px;margin-bottom:4px">&#44277;&#51221;&#47924;&#50669; (Fair Trade, 0-10)</div>'+
+              '<div style="font-size:10px">Fairtrade International &#51064;&#51613; &#50668;&#48512;:<br>'+
+              '&#8226; <b style="color:#2ecc71">9&#51216;</b>: &#51064;&#51613; &#48372;&#50976; (&#52572;&#51200;&#44032;&#44201; $1.40/lb + &#49324;&#54924;&#51201; &#54532;&#47532;&#48120;&#50628; $0.20/lb &#48372;&#51109;)<br>'+
+              '&#8226; <b style="color:#e74c3c">3&#51216;</b>: &#48120;&#51064;&#51613; (&#49884;&#51109; &#44032;&#44201;&#47564; &#51201;&#50857;)<br>'+
+              '<span style="font-size:9px;color:#6b5e4a">&#44540;&#44144;: Fairtrade International Minimum Price Table (2024)</span></div>'+
+            '</div>'+
+            '<div style="padding:8px;background:rgba(0,0,0,.15);border-radius:6px">'+
+              '<div style="color:#7ab85a;font-weight:600;font-size:10px;margin-bottom:4px">&#50976;&#44592;&#45453; (Organic, 0-10)</div>'+
+              '<div style="font-size:10px">USDA/EU Organic &#51064;&#51613; &#50668;&#48512;:<br>'+
+              '&#8226; <b style="color:#2ecc71">9&#51216;</b>: &#51064;&#51613; (&#54868;&#54617;&#48708;&#47308;&#183;&#54633;&#49457;&#45453;&#50557; &#48120;&#49324;&#50857;, 3&#45380; &#51060;&#49345; &#50976;&#44592; &#51204;&#54872;)<br>'+
+              '&#8226; <b style="color:#e74c3c">4&#51216;</b>: &#48120;&#51064;&#51613; (&#44288;&#54665; &#45453;&#48277;)<br>'+
+              '<span style="font-size:9px;color:#6b5e4a">&#44540;&#44144;: USDA NOP 7 CFR Part 205; FiBL/IFOAM (2024)</span></div>'+
+            '</div>'+
+            '<div style="padding:8px;background:rgba(0,0,0,.15);border-radius:6px">'+
+              '<div style="color:#5dbb9a;font-weight:600;font-size:10px;margin-bottom:4px">&#47112;&#51064;&#54252;&#47112;&#49828;&#53944; (Rainforest Alliance, 0-10)</div>'+
+              '<div style="font-size:10px">RA &#51064;&#51613; &#50668;&#48512;:<br>'+
+              '&#8226; <b style="color:#2ecc71">8&#51216;</b>: &#51064;&#51613; (&#49373;&#53468;&#44228; &#48372;&#51204;, &#45432;&#46041;&#51088; &#48373;&#51648;, &#50676;&#45824;&#50864;&#47548; &#48372;&#54840; &#44592;&#51456; &#52649;&#51313;)<br>'+
+              '&#8226; <b style="color:#e74c3c">4&#51216;</b>: &#48120;&#51064;&#51613;<br>'+
+              '<span style="font-size:9px;color:#6b5e4a">&#44540;&#44144;: Rainforest Alliance Certification Data Report (2023)</span></div>'+
+            '</div>'+
+          '</div>'+
+        '</div>'+
+      '</div>'+
+
+      /* Climate impact context */
+      '<div style="margin-bottom:12px;padding:12px;background:rgba(52,152,219,.08);border:1px solid rgba(52,152,219,.25);border-radius:8px">'+
+        '<div style="font-weight:700;font-size:13px;color:#3498db;margin-bottom:8px">&#127777;&#65039; &#44592;&#54980;&#48320;&#54868;&#50752; &#52964;&#54588; &#49328;&#50629; (Climate Change &amp; Coffee Industry)</div>'+
+        '<div style="font-size:11px;line-height:1.8;color:#b8a88a">'+
+          '<div style="margin-bottom:6px">&#44592;&#54980;&#48320;&#54868;&#45716; &#52964;&#54588; &#49328;&#50629;&#50640; &#51649;&#51217;&#51201;&#51064; &#50948;&#54744;&#51012; &#44032;&#54633;&#45768;&#45796;:</div>'+
+          '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px">'+
+            '<div style="padding:6px 8px;background:rgba(0,0,0,.15);border-radius:6px;font-size:10px">'+
+              '<span style="color:#e74c3c;font-weight:600">&#49373;&#49328; &#44048;&#49548; &#50948;&#54744;</span><br>'+
+              '2050&#45380;&#44620;&#51648; &#50500;&#46972;&#48708;&#52852; &#51201;&#54633; &#51116;&#48176;&#51648; <b>50% &#44048;&#49548;</b> &#50696;&#52769; (IPCC AR6). &#50728;&#46020; 2&#8451; &#49345;&#49849; &#49884; &#48652;&#46972;&#51656;&#183;&#53084;&#47212;&#48708;&#50500;&#183;&#50640;&#54000;&#50724;&#54588;&#50500; &#51452;&#50836; &#49328;&#51648;&#50640; &#49900;&#44033;&#54620; &#50689;&#54693;.'+
+            '</div>'+
+            '<div style="padding:6px 8px;background:rgba(0,0,0,.15);border-radius:6px;font-size:10px">'+
+              '<span style="color:#f39c12;font-weight:600">&#54408;&#51656; &#51200;&#54616; &#50948;&#54744;</span><br>'+
+              '&#44256;&#50728;&#51004;&#47196; &#52404;&#47532; &#49457;&#49689; &#44032;&#49549;&#54868; &#8594; &#49328;&#48120;&#183;&#54413;&#48120; &#48373;&#54633;&#49457; &#44048;&#49548;. &#52964;&#54588;&#45433;&#48337;(Coffee Leaf Rust) &#54869;&#49328; &#50948;&#54744; &#51613;&#44032;.'+
+            '</div>'+
+          '</div>'+
+          '<div style="font-size:10px;color:#8a7e6a">'+
+            '&#51060;&#47084;&#54620; &#48176;&#44221;&#50640;&#49436; <b>&#53444;&#49548; &#48156;&#51088;&#44397; &#52628;&#51201;(Carbon Footprint Tracking)</b>&#51008; &#52964;&#54588; &#44277;&#44553;&#47581; ESG &#54217;&#44032;&#51032; &#54645;&#49900; &#51648;&#54364;&#47196; &#51088;&#47532;&#51105;&#50520;&#49845;&#45768;&#45796;. '+
+            'EU&#51032; &#53444;&#49548;&#44397;&#44221;&#51312;&#51221;&#47700;&#52964;&#45768;&#51608;(CBAM)&#44284; &#44592;&#50629; &#51648;&#49549;&#44032;&#45733;&#49457; &#48372;&#44256;(CSRD)&#45716; &#52964;&#54588; &#49688;&#51077;&#50629;&#52404;&#50640;&#44172;&#46020; &#53444;&#49548; &#48176;&#52636; &#44277;&#44060;&#47484; &#50836;&#44396;&#54616;&#44256; &#51080;&#49845;&#45768;&#45796;.'+
+          '</div>'+
+        '</div>'+
+      '</div>'+
+
+      /* Certification summary */
+      '<div style="margin-bottom:10px;font-weight:700;font-size:12px;color:#d4a853">&#128203; &#51064;&#51613; &#48372;&#50976; &#54788;&#54889; (Certification Overview)</div>'+
       '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">'+
       Object.entries(certCount).map(([c,n])=>
         '<div style="padding:6px 10px;background:rgba(0,0,0,.15);border-radius:6px;font-size:11px">'+
-        '<span style="color:#5dbb85;font-weight:600">'+c.replace(/_/g,' ')+'</span> '+n+'개</div>'
+        '<span style="color:#5dbb85;font-weight:600">'+c.replace(/_/g,' ')+'</span> '+n+'&#44060;</div>'
       ).join('')+'</div>'+
-      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">'+
+
+      /* Risk group details */
+      '<div style="margin-bottom:10px;font-weight:700;font-size:12px;color:#d4a853">&#128202; CO&#8322; &#50948;&#54744; &#46321;&#44553;&#48324; &#48652;&#47004;&#46300; (Risk Group Details)</div>'+
+      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:10px">'+
       labels.map((l,i)=>
         '<div style="padding:8px;background:rgba(0,0,0,.15);border-radius:6px;border-left:3px solid '+colors[i]+'">'+
         '<div style="font-weight:600;color:'+colors[i]+'">'+l+' ('+vals[i]+')</div>'+
         '<div style="font-size:9.5px;margin-top:3px">'+esgGroups[l].join(', ')+'</div></div>'
-      ).join('')+'</div>';
+      ).join('')+'</div>'+
+
+      /* References */
+      '<div style="padding:10px;background:rgba(0,0,0,.1);border-radius:6px;font-size:9.5px;color:#6b5e4a;line-height:1.7">'+
+        '<div style="font-weight:600;margin-bottom:4px;color:#8a7e6a">&#128218; &#52280;&#44256; &#47928;&#54732; (References)</div>'+
+        '&#8226; Quantis &amp; ECF (2023). <i>Product Environmental Footprint of Green Coffee</i>. European Coffee Federation.<br>'+
+        '&#8226; Killian, B. &amp; Rivera, L. (2017). "Carbon Footprint across the Coffee Supply Chain." <i>J. Agricultural Science and Technology</i>, 19(7).<br>'+
+        '&#8226; IPCC (2022). <i>Climate Change 2022: Impacts, Adaptation and Vulnerability</i>. AR6 Working Group II.<br>'+
+        '&#8226; Bunn, C. et al. (2015). "A bitter cup: climate change profile of global production of Arabica and Robusta coffee." <i>Climatic Change</i>, 129, pp.89-101.<br>'+
+        '&#8226; Fairtrade International (2024). <i>Monitoring Report: Coffee</i>. fairtrade.net<br>'+
+        '&#8226; Rainforest Alliance (2023). <i>Certification Data Report</i>. rainforest-alliance.org<br>'+
+        '&#8226; EU (2023). <i>Carbon Border Adjustment Mechanism (CBAM) Regulation</i>. EU 2023/956.<br>'+
+        '&#8226; Panhuysen, S. &amp; Pierrot, J. (2024). <i>Coffee Barometer 2024</i>. coffeebarometer.org'+
+      '</div>';
   }
 
   popup.style.display='flex';
