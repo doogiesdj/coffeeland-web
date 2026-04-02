@@ -331,7 +331,7 @@ function renderMap(farms,ports){
   const sc=document.createElement('script');sc.src='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';
   sc.onload=()=>{
     const map=L.map('map',{center:[20,15],zoom:2,zoomControl:true});
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; OpenStreetMap',maxZoom:18}).addTo(map);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{attribution:'&copy; OpenStreetMap &copy; CARTO',maxZoom:19,subdomains:'abcd'}).addTo(map);
 
     const farmLayer=L.layerGroup().addTo(map);
     const cpLayer=L.layerGroup().addTo(map);
