@@ -398,15 +398,20 @@ function renderMap(farms,ports){
       }
     });
 
-    /* Single layer control with colored icons and counts */
-    const d=(c,r)=>`<span style="display:inline-block;width:10px;height:10px;background:${c};border-radius:${r?'50%':'2px'};${r?'':'transform:rotate(45deg);'}vertical-align:middle;margin-right:4px;border:1px solid rgba(0,0,0,.3)"></span>`;
+    /* Single layer control with colored icons matching map markers */
+    const ico=(c,shape)=>{
+      if(shape==='circle') return `<span style="display:inline-block;width:10px;height:10px;background:${c};border-radius:50%;vertical-align:middle;margin-right:4px;border:1px solid rgba(0,0,0,.3)"></span>`;
+      if(shape==='square') return `<span style="display:inline-block;width:10px;height:10px;background:${c};border-radius:3px;vertical-align:middle;margin-right:4px;border:1px solid rgba(0,0,0,.3)"></span>`;
+      if(shape==='diamond') return `<span style="display:inline-block;width:9px;height:9px;background:${c};border-radius:2px;transform:rotate(45deg);vertical-align:middle;margin-right:6px;border:1px solid rgba(0,0,0,.3)"></span>`;
+      return `<span style="display:inline-block;width:10px;height:10px;vertical-align:middle;margin-right:4px;font-size:12px">&#127758;</span>`;
+    };
     L.control.layers(null,{
-      [`${d('#2ecc71',1)}Farms (${farms.length})`]:farmLayer,
-      [`${d('#3498db',0)}Consumer Ports (${cp.filter(p=>p.lat).length})`]:cpLayer,
-      [`${d('#e67e22',0)}Producer Ports (${pp.filter(p=>p.lat).length})`]:ppLayer,
-      [`${d('#1abc9c',0)}Consumer WH (${cw.filter(w=>w.lat).length})`]:cwLayer,
-      [`${d('#8b5e3c',0)}Producer WH (${pw.filter(w=>w.lat).length})`]:pwLayer,
-      [`${d('#c0392b',1)}Countries`]:countryLayer
+      [`${ico('#2ecc71','circle')}Farms (${farms.length})`]:farmLayer,
+      [`${ico('#3498db','square')}Consumer Ports (${cp.filter(p=>p.lat).length})`]:cpLayer,
+      [`${ico('#e67e22','square')}Producer Ports (${pp.filter(p=>p.lat).length})`]:ppLayer,
+      [`${ico('#1abc9c','diamond')}Consumer WH (${cw.filter(w=>w.lat).length})`]:cwLayer,
+      [`${ico('#8b5e3c','diamond')}Producer WH (${pw.filter(w=>w.lat).length})`]:pwLayer,
+      [`${ico('','globe')}Countries`]:countryLayer
     },{collapsed:false,position:'topright'}).addTo(map);
   };
   document.head.appendChild(sc);
