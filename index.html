@@ -1143,36 +1143,72 @@ function renderFlow(nodes,links){
     html+=`<text x="${x}" y="24" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="${c}" letter-spacing=".04em">${t}</text>`;
   });
   svg.innerHTML=html;
-  /* hover highlight */
+  const svgContainer=svg.parentElement;
+  /* hover & click highlight + centering */
   const allNodes=svg.querySelectorAll('.flow-node');
   const allLinks=svg.querySelectorAll('.flow-link');
   const LINK_HI={produces:'rgba(200,136,90,.85)',supplies:'rgba(122,171,204,.85)'};
+
+  function highlightNode(nid){
+    const conn=getConnected(nid);
+    allNodes.forEach(g2=>{
+      const id2=g2.getAttribute('data-id');
+      if(conn.nodes.has(id2)){g2.style.opacity='1';g2.querySelector('rect').style.strokeWidth='2.5';if(id2===nid)g2.querySelector('rect').style.filter='url(#glow)';}
+      else{g2.style.opacity='.12'}
+    });
+    allLinks.forEach(p=>{
+      const src=p.getAttribute('data-source'),tgt=p.getAttribute('data-target');
+      if(conn.links.has(src+'|'+tgt)){
+        const lt=links.find(l=>l.source===src&&l.target===tgt);
+        p.style.stroke=LINK_HI[lt?lt.type:'produces'];p.style.strokeWidth='2.5';p.style.opacity='1';
+      }else{p.style.opacity='.04'}
+    });
+  }
+  function resetHighlight(){
+    allNodes.forEach(g2=>{g2.style.opacity='1';g2.querySelector('rect').style.strokeWidth='1';g2.querySelector('rect').style.filter='none'});
+    allLinks.forEach(p=>{
+      const lt=links.find(l=>l.source===p.getAttribute('data-source')&&l.target===p.getAttribute('data-target'));
+      p.style.stroke=lt&&lt.type==='produces'?'rgba(200,136,90,.2)':'rgba(122,171,204,.2)';
+      p.style.strokeWidth='1.2';p.style.opacity='1';
+    });
+  }
+  function centerOnNode(nid){
+    const p=pos[nid];if(!p)return;
+    /* Calculate SVG coordinate to pixel position */
+    const svgRect=svg.getBoundingClientRect();
+    const containerRect=svgContainer.getBoundingClientRect();
+    const vb=svg.viewBox.baseVal;
+    const scaleX=svgRect.width/vb.width;
+    const scaleY=svgRect.height/vb.height;
+    /* Scroll horizontally to center the node */
+    const nodePixelX=p.x*scaleX;
+    const containerW=containerRect.width;
+    const scrollTarget=nodePixelX-containerW/2;
+    svgContainer.scrollTo({left:Math.max(0,scrollTarget),behavior:'smooth'});
+    /* Scroll vertically to bring SVG section into viewport */
+    const nodePixelY=svgRect.top+p.y*scaleY;
+    const vpCenter=window.innerHeight/2;
+    const scrollY=window.scrollY+(nodePixelY-vpCenter);
+    window.scrollTo({top:Math.max(0,scrollY),behavior:'smooth'});
+  }
+
+  let clickedNode=null;
   allNodes.forEach(g=>{
     const nid=g.getAttribute('data-id');
-    g.addEventListener('mouseenter',()=>{
-      const conn=getConnected(nid);
-      allNodes.forEach(g2=>{
-        const id2=g2.getAttribute('data-id');
-        if(conn.nodes.has(id2)){g2.style.opacity='1';g2.querySelector('rect').style.strokeWidth='2';if(id2===nid)g2.querySelector('rect').style.filter='url(#glow)';}
-        else{g2.style.opacity='.15'}
-      });
-      allLinks.forEach(p=>{
-        const src=p.getAttribute('data-source'),tgt=p.getAttribute('data-target');
-        const linkKey=src+'|'+tgt;
-        if(conn.links.has(linkKey)){
-          const lt=links.find(l=>l.source===src&&l.target===tgt);
-          p.style.stroke=LINK_HI[lt?lt.type:'produces'];p.style.strokeWidth='2.5';p.style.opacity='1';
-        }else{p.style.opacity='.06'}
-      });
+    g.style.cursor='pointer';
+    g.addEventListener('mouseenter',()=>{if(!clickedNode)highlightNode(nid)});
+    g.addEventListener('mouseleave',()=>{if(!clickedNode)resetHighlight()});
+    g.addEventListener('click',(e)=>{
+      e.stopPropagation();
+      if(clickedNode===nid){clickedNode=null;resetHighlight();return}
+      clickedNode=nid;
+      highlightNode(nid);
+      centerOnNode(nid);
     });
-    g.addEventListener('mouseleave',()=>{
-      allNodes.forEach(g2=>{g2.style.opacity='1';g2.querySelector('rect').style.strokeWidth='1';g2.querySelector('rect').style.filter='none'});
-      allLinks.forEach(p=>{
-        const lt=links.find(l=>l.source===p.getAttribute('data-source')&&l.target===p.getAttribute('data-target'));
-        p.style.stroke=lt&&lt.type==='produces'?'rgba(200,136,90,.2)':'rgba(122,171,204,.2)';
-        p.style.strokeWidth='1.2';p.style.opacity='1';
-      });
-    });
+  });
+  /* Click outside to reset */
+  svg.addEventListener('click',(e)=>{
+    if(e.target===svg||e.target.tagName==='svg'){clickedNode=null;resetHighlight()}
   });
 }
 
