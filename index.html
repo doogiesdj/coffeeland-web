@@ -767,7 +767,74 @@ function showBrandPopup(type){
       (d.trend?'<div style="margin-top:5px"><span style="color:#e67e22;font-weight:600;font-size:10px">GROWTH TREND (성장 추세)</span><div style="font-size:10.5px;margin-top:2px">'+d.trend+'</div></div>':'')+
       (d.ref?'<div style="margin-top:4px;font-size:9px;color:#6b5e4a;font-style:italic">'+d.ref+'</div>':'')+
       '<div style="font-size:10px;margin-top:5px;padding-top:4px;border-top:1px solid rgba(255,255,255,.06);color:#8a7e6a">&#9749; 브랜드: '+segBrands[l].join(', ')+'</div></div>';
-    }).join('');
+    }).join('')+
+    '<div style="margin-top:14px;background:rgba(107,63,160,.1);border:1px solid rgba(155,89,182,.3);border-radius:10px;padding:14px">'+
+      '<div style="font-weight:700;font-size:13px;color:#9b59b6;margin-bottom:10px">&#9749; SCA (Specialty Coffee Association) &#51204;&#47928; &#49548;&#44060;</div>'+
+      '<div style="font-size:11px;line-height:1.8;color:#b8a88a">'+
+        '<div style="margin-bottom:8px">'+
+          '<b style="color:#d4a853">SCA&#46976;?</b><br>'+
+          '&#49828;&#54168;&#49500;&#54000; &#52964;&#54588; &#54801;&#54924;(Specialty Coffee Association)&#45716; 2017&#45380; SCAA(&#48120;&#44397;)&#50752; SCAE(&#50976;&#47101;)&#51060; &#53685;&#54633;&#54616;&#50668; &#49444;&#47549;&#46108; &#49464;&#44228; &#52572;&#45824;&#51032; &#52964;&#54588; &#49328;&#50629; &#48708;&#50689;&#47532; &#45800;&#52404;&#51077;&#45768;&#45796;. &#48376;&#48512;&#45716; &#48120;&#44397; &#52888;&#47532;&#54252;&#45768;&#50500;&#51452; &#50612;&#48148;&#51064;(Irvine)&#50640; &#51080;&#51004;&#47728;, 100&#44060;&#44397; &#51060;&#49345;&#50640;&#49436; &#54876;&#46041;&#54616;&#45716; &#54924;&#50896; &#44592;&#48152; &#51312;&#51649;&#51077;&#45768;&#45796;.'+
+        '</div>'+
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">'+
+          '<div style="padding:8px;background:rgba(0,0,0,.15);border-radius:6px">'+
+            '<div style="color:#9b59b6;font-weight:600;font-size:10px;margin-bottom:4px">SCA &#52964;&#54609; &#54532;&#47196;&#53664;&#53084; (Cupping Protocol)</div>'+
+            '<div style="font-size:10px">&#8226; 100&#51216; &#47564;&#51216; &#52404;&#44228;&#47196; &#49373;&#46160;(green bean)&#51032; &#54408;&#51656; &#54217;&#44032;<br>'+
+            '&#8226; 80&#51216; &#51060;&#49345;: &#49828;&#54168;&#49500;&#54000; &#46321;&#44553;(Specialty Grade)<br>'+
+            '&#8226; 60~80&#51216;: &#49345;&#50629;&#50857; &#46321;&#44553;(Commercial Grade)<br>'+
+            '&#8226; 60&#51216; &#48120;&#47564;: &#46321;&#44553; &#48120;&#45804;(Below Grade)</div>'+
+          '</div>'+
+          '<div style="padding:8px;background:rgba(0,0,0,.15);border-radius:6px">'+
+            '<div style="color:#9b59b6;font-weight:600;font-size:10px;margin-bottom:4px">&#54217;&#44032; &#54637;&#47785; (10&#44060; &#52852;&#53580;&#44256;&#47532;)</div>'+
+            '<div style="font-size:10px">&#8226; Fragrance/Aroma (&#54693;) — &#44148;&#51312;/&#49845;&#51008; &#49345;&#53468; &#54693;&#44592;<br>'+
+            '&#8226; Flavor (&#54413;&#48120;) — &#47579;&#44284; &#54693;&#51032; &#51333;&#54633;<br>'+
+            '&#8226; Aftertaste (&#54980;&#48120;) — &#49340;&#53416; &#54980; &#45224;&#45716; &#50668;&#50868;<br>'+
+            '&#8226; Acidity (&#49328;&#48120;) — &#48157;&#44256; &#44648;&#45143;&#54620; &#49328;&#46020;<br>'+
+            '&#8226; Body (&#48148;&#46356;) — &#51077;&#50504;&#51032; &#47924;&#44172;&#44048;&#183;&#51656;&#44048;</div>'+
+          '</div>'+
+          '<div style="padding:8px;background:rgba(0,0,0,.15);border-radius:6px">'+
+            '<div style="color:#9b59b6;font-weight:600;font-size:10px;margin-bottom:4px">&#54217;&#44032; &#54637;&#47785; (&#44228;&#49549;)</div>'+
+            '<div style="font-size:10px">&#8226; Balance (&#44512;&#54805;) — &#51204;&#52404;&#51201; &#51312;&#54868;<br>'+
+            '&#8226; Sweetness (&#45800;&#47579;) — &#45800;&#47579;&#51032; &#51316;&#51116;&#44048;<br>'+
+            '&#8226; Clean Cup (&#44648;&#45143;&#54632;) — &#44208;&#54632; &#50630;&#45716; &#47579;<br>'+
+            '&#8226; Uniformity (&#44512;&#51068;&#49457;) — &#52981; &#44036; &#51068;&#44288;&#49457;<br>'+
+            '&#8226; Overall (&#51333;&#54633;) — &#52509;&#54217;</div>'+
+          '</div>'+
+          '<div style="padding:8px;background:rgba(0,0,0,.15);border-radius:6px">'+
+            '<div style="color:#9b59b6;font-weight:600;font-size:10px;margin-bottom:4px">Q-Grader &#51064;&#51613; &#51228;&#46020;</div>'+
+            '<div style="font-size:10px">&#8226; CQI(Coffee Quality Institute)&#50640;&#49436; &#50868;&#50689;<br>'+
+            '&#8226; 22&#44060; &#49884;&#54744;&#51012; &#53685;&#44284;&#54644;&#50556; Q-Grader &#51088;&#44201; &#52712;&#46301;<br>'+
+            '&#8226; &#49340;&#44033;(triangulation), &#52964;&#54609;, &#49373;&#46160; &#46321;&#44553; &#46321; &#54252;&#54632;<br>'+
+            '&#8226; &#51204; &#49464;&#44228; &#50557; 6,000&#47749;&#51032; &#51064;&#51613; Q-Grader &#54876;&#46041; &#51473;</div>'+
+          '</div>'+
+        '</div>'+
+        '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px">'+
+          '<div style="padding:6px 8px;background:rgba(0,0,0,.15);border-radius:6px;text-align:center">'+
+            '<div style="font-size:18px;font-weight:700;color:#9b59b6">90+</div>'+
+            '<div style="font-size:9px;color:#8a7e6a">Outstanding<br>(&#53945;&#52636;)</div>'+
+          '</div>'+
+          '<div style="padding:6px 8px;background:rgba(0,0,0,.15);border-radius:6px;text-align:center">'+
+            '<div style="font-size:18px;font-weight:700;color:#3498db">85-89</div>'+
+            '<div style="font-size:9px;color:#8a7e6a">Excellent<br>(&#50864;&#49688;)</div>'+
+          '</div>'+
+          '<div style="padding:6px 8px;background:rgba(0,0,0,.15);border-radius:6px;text-align:center">'+
+            '<div style="font-size:18px;font-weight:700;color:#2ecc71">80-84</div>'+
+            '<div style="font-size:9px;color:#8a7e6a">Very Good<br>(&#50864;&#47049;)</div>'+
+          '</div>'+
+        '</div>'+
+        '<div style="padding:8px;background:rgba(0,0,0,.15);border-radius:6px;margin-bottom:8px">'+
+          '<div style="color:#d4a853;font-weight:600;font-size:10px;margin-bottom:4px">SCA &#51452;&#50836; &#54876;&#46041; &#48143; &#54532;&#47196;&#44536;&#47016;</div>'+
+          '<div style="font-size:10px">'+
+            '&#8226; <b>Coffee Skills Program (CSP)</b> — 5&#44060; &#47784;&#46280;(Introduction to Coffee, Brewing, Barista Skills, Sensory Skills, Green Coffee, Roasting)&#51032; &#44368;&#50977; &#51064;&#51613; &#52404;&#44228;<br>'+
+            '&#8226; <b>World Coffee Championships</b> — &#48148;&#47532;&#49828;&#53440;, &#48652;&#47336;&#50612;&#49828;, &#47196;&#49828;&#54021;, &#52964;&#54609; &#46321; 7&#44060; &#48516;&#50556; &#49464;&#44228;&#45824;&#54924; &#50868;&#50689;<br>'+
+            '&#8226; <b>Sustainability Program</b> — &#52964;&#54588; &#44277;&#44553;&#47581; &#51648;&#49549;&#44032;&#45733;&#49457; &#50672;&#44396; &#48143; &#44592;&#51456; &#49688;&#47549;<br>'+
+            '&#8226; <b>Coffee Science</b> — &#52964;&#54588; &#54868;&#54617;&#183;&#47932;&#47532;&#54617;&#51201; &#50672;&#44396; &#44208;&#44284; &#48156;&#54364; (Journal of Coffee Science)'+
+          '</div>'+
+        '</div>'+
+        '<div style="font-size:9px;color:#6b5e4a;font-style:italic">'+
+          'Ref: SCA (2024). sca.coffee | CQI. coffeeinstitute.org | Lingle, T.R. (2011). "The Coffee Cupper&#8217;s Handbook." SCA Publications.'+
+        '</div>'+
+      '</div>'+
+    '</div>';
   }
   else if(type==='method'){
     title.innerHTML='&#9881;&#65039; 가공방식별 브랜드 분포';
