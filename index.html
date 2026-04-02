@@ -1252,16 +1252,21 @@ function renderFlow(nodes,links){
     popup.style.display='flex';
   }
 
-  /* Event delegation on SVG for reliable click/hover on nodes */
-  allNodes.forEach(g=>{
-    const nid=g.getAttribute('data-id');
-    g.style.cursor='pointer';
-    /* Make child elements non-interactive so g receives events */
-    g.querySelectorAll('rect,text').forEach(el=>el.style.pointerEvents='none');
-    g.style.pointerEvents='all';
-    g.addEventListener('mouseenter',()=>highlightNode(nid));
-    g.addEventListener('mouseleave',()=>resetHighlight());
-    g.addEventListener('click',()=>showFocusView(nid));
+  /* SVG-level event delegation — most reliable for SVG elements */
+  function findNodeId(el){
+    while(el&&el!==svg){
+      if(el.classList&&el.classList.contains('flow-node'))return el.getAttribute('data-id');
+      el=el.parentElement||el.parentNode;
+    }
+    return null;
+  }
+  svg.addEventListener('mouseover',function(e){
+    const nid=findNodeId(e.target);
+    if(nid)highlightNode(nid); else resetHighlight();
+  });
+  svg.addEventListener('click',function(e){
+    const nid=findNodeId(e.target);
+    if(nid)showFocusView(nid);
   });
 }
 
