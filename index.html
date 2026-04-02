@@ -331,7 +331,7 @@ function renderMap(farms,ports){
   const sc=document.createElement('script');sc.src='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';
   sc.onload=()=>{
     const map=L.map('map',{center:[20,15],zoom:2,zoomControl:true});
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{attribution:'&copy; OpenStreetMap &copy; CARTO',maxZoom:19,subdomains:'abcd'}).addTo(map);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{attribution:'&copy; OpenStreetMap &copy; CARTO',maxZoom:19,subdomains:'abcd'}).addTo(map);
 
     const farmLayer=L.layerGroup().addTo(map);
     const cpLayer=L.layerGroup().addTo(map);
@@ -340,8 +340,8 @@ function renderMap(farms,ports){
     const pwLayer=L.layerGroup().addTo(map);
     const countryLayer=L.layerGroup().addTo(map);
 
-    const mkIcon=(color,shape,size)=>L.divIcon({className:'',html:`<div style="width:${size}px;height:${size}px;background:${color};border:2px solid rgba(255,255,255,.5);border-radius:${shape==='circle'?'50%':shape==='diamond'?'2px':'3px'};${shape==='diamond'?'transform:rotate(45deg);':''}box-shadow:0 0 8px ${color}88;cursor:pointer"></div>`,iconSize:[size,size],iconAnchor:[size/2,size/2]});
-    const mkLabel=(text,color)=>L.divIcon({className:'',html:`<div style="color:${color};font:bold 9px/1 sans-serif;text-shadow:0 0 4px rgba(0,0,0,.8),0 0 2px rgba(0,0,0,.9);white-space:nowrap;pointer-events:none">${text}</div>`,iconSize:[0,0],iconAnchor:[-8,4]});
+    const mkIcon=(color,shape,size)=>L.divIcon({className:'',html:`<div style="width:${size}px;height:${size}px;background:${color};border:2px solid rgba(0,0,0,.4);border-radius:${shape==='circle'?'50%':shape==='diamond'?'2px':'3px'};${shape==='diamond'?'transform:rotate(45deg);':''}box-shadow:0 0 6px ${color}66;cursor:pointer"></div>`,iconSize:[size,size],iconAnchor:[size/2,size/2]});
+    const mkLabel=(text,color)=>L.divIcon({className:'',html:`<div style="color:${color};font:bold 9px/1 sans-serif;text-shadow:0 0 3px #fff,0 0 6px #fff;white-space:nowrap;pointer-events:none">${text}</div>`,iconSize:[0,0],iconAnchor:[-8,4]});
 
     /* Popup style */
     const ps='font:12px/1.5 sans-serif;min-width:160px';
@@ -361,7 +361,7 @@ function renderMap(farms,ports){
       if(!p.lat)return;
       L.marker([p.lat,p.lng],{icon:mkIcon('#3498db','square',13)}).addTo(cpLayer)
         .bindPopup(`<div style="${ps}"><b style="color:#3498db">&#9875; Consumer Port</b><br><b>${p.label}</b><br>Country: ${p.country||''}</div>`);
-      L.marker([p.lat,p.lng],{icon:mkLabel(p.label,'#85c1e9'),interactive:false}).addTo(cpLayer);
+      L.marker([p.lat,p.lng],{icon:mkLabel(p.label,'#1a5276'),interactive:false}).addTo(cpLayer);
     });
 
     /* 3. Producer Ports */
@@ -370,7 +370,7 @@ function renderMap(farms,ports){
       if(!p.lat)return;
       L.marker([p.lat,p.lng],{icon:mkIcon('#e67e22','square',13)}).addTo(ppLayer)
         .bindPopup(`<div style="${ps}"><b style="color:#e67e22">&#9875; Producer Port</b><br><b>${p.label}</b><br>Country: ${p.country||''}</div>`);
-      L.marker([p.lat,p.lng],{icon:mkLabel(p.label,'#f0b27a'),interactive:false}).addTo(ppLayer);
+      L.marker([p.lat,p.lng],{icon:mkLabel(p.label,'#7e3c00'),interactive:false}).addTo(ppLayer);
     });
 
     /* 4. Consumer Warehouses */
@@ -394,7 +394,7 @@ function renderMap(farms,ports){
     Object.entries(farmCounts).forEach(([c,n])=>{
       const cc=countryCoords[c.replace(/ /g,'_')];
       if(cc){
-        L.marker(cc,{icon:L.divIcon({className:'',html:`<div style="color:#e0d6c8;font:bold 11px/1 sans-serif;text-shadow:0 0 6px rgba(0,0,0,.9);white-space:nowrap;text-align:center;pointer-events:none"><span style="color:#f1c40f">&#127758;</span> ${c.replace(/_/g,' ')}<br><span style="font-size:9px;color:#aaa">${n} farm${n>1?'s':''}</span></div>`,iconSize:[0,0],iconAnchor:[40,-10]}),interactive:false}).addTo(countryLayer);
+        L.marker(cc,{icon:L.divIcon({className:'',html:`<div style="color:#2c3e50;font:bold 11px/1 sans-serif;text-shadow:0 0 3px #fff,0 0 6px #fff;white-space:nowrap;text-align:center;pointer-events:none"><span style="color:#c0392b">&#127758;</span> ${c.replace(/_/g,' ')}<br><span style="font-size:9px;color:#555">${n} farm${n>1?'s':''}</span></div>`,iconSize:[0,0],iconAnchor:[40,-10]}),interactive:false}).addTo(countryLayer);
       }
     });
 
@@ -402,20 +402,20 @@ function renderMap(farms,ports){
     const legend=L.control({position:'bottomright'});
     legend.onAdd=()=>{
       const div=L.DomUtil.create('div');
-      div.style.cssText='background:rgba(15,15,25,.92);padding:12px 16px;border-radius:10px;color:#e0d6c8;font:11px/1.8 sans-serif;box-shadow:0 4px 12px rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.08)';
+      div.style.cssText='background:rgba(255,255,255,.95);padding:12px 16px;border-radius:10px;color:#2c3e50;font:11px/1.8 sans-serif;box-shadow:0 4px 12px rgba(0,0,0,.2);border:1px solid rgba(0,0,0,.1)';
       const dot=(c,r)=>`<span style="display:inline-block;width:${r?12:10}px;height:${r?12:10}px;background:${c};border-radius:${r?'50%':'2px'};${r?'':'transform:rotate(45deg);'}vertical-align:middle;margin-right:6px;border:1px solid rgba(255,255,255,.3)"></span>`;
-      div.innerHTML=`<div style="font-weight:700;margin-bottom:4px;font-size:13px;color:#f1c40f">&#9749; Supply Chain Map</div>
+      div.innerHTML=`<div style="font-weight:700;margin-bottom:4px;font-size:13px;color:#8b4513">&#9749; Supply Chain Map</div>
         <div>${dot('#2ecc71',1)}Farm - Low CO&#8322; (${farms.filter(f=>f.esg==='low').length})</div>
         <div>${dot('#f39c12',1)}Farm - Mid CO&#8322; (${farms.filter(f=>f.esg==='mid').length})</div>
         <div>${dot('#e74c3c',1)}Farm - High CO&#8322; (${farms.filter(f=>f.esg==='high').length})</div>
-        <div style="border-top:1px solid rgba(255,255,255,.1);margin:4px 0"></div>
+        <div style="border-top:1px solid rgba(0,0,0,.1);margin:4px 0"></div>
         <div>${dot('#e67e22',0)}Producer Port (${pp.filter(p=>p.lat).length})</div>
         <div>${dot('#3498db',0)}Consumer Port (${cp.filter(p=>p.lat).length})</div>
-        <div style="border-top:1px solid rgba(255,255,255,.1);margin:4px 0"></div>
+        <div style="border-top:1px solid rgba(0,0,0,.1);margin:4px 0"></div>
         <div>${dot('#8b5e3c',0)}Producer WH (${pw.filter(w=>w.lat).length})</div>
         <div>${dot('#1abc9c',0)}Consumer WH (${cw.filter(w=>w.lat).length})</div>
-        <div style="border-top:1px solid rgba(255,255,255,.1);margin:4px 0"></div>
-        <div style="color:#aaa;font-size:10px">Total: ${farms.length} farms, ${cp.length+pp.length} ports, ${cw.length+pw.length} WH</div>`;
+        <div style="border-top:1px solid rgba(0,0,0,.1);margin:4px 0"></div>
+        <div style="color:#777;font-size:10px">Total: ${farms.length} farms, ${cp.length+pp.length} ports, ${cw.length+pw.length} WH</div>`;
       return div;
     };
     legend.addTo(map);
