@@ -693,7 +693,7 @@ function showBrandPopup(type){
   const brands=D.brands.filter(b=>b.price>0);
 
   if(type==='segment'){
-    title.innerHTML='&#127942; 가격 등급별 브랜드 분포';
+    title.innerHTML='&#127942; 가격 등급별 브랜드 분포 (Price Segment Distribution)';
     const segs={Luxury:0,Specialty:0,Premium:0,MidRange:0,Budget:0};
     const segBrands={Luxury:[],Specialty:[],Premium:[],MidRange:[],Budget:[]};
     brands.forEach(b=>{const s=b.segment||'—';if(segs[s]!==undefined){segs[s]++;segBrands[s].push(b.name)}});
@@ -703,17 +703,71 @@ function showBrandPopup(type){
       data:{labels,datasets:[{data:Object.values(segs),backgroundColor:colors,borderColor:'rgba(0,0,0,.3)',borderWidth:2}]},
       options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{color:'#a8987e',font:{size:12}}}}}
     });
-    info.innerHTML='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'+labels.map((l,i)=>
-      '<div style="padding:8px;background:rgba(0,0,0,.15);border-radius:6px;border-left:3px solid '+colors[i]+'">'+
-      '<div style="font-weight:600;color:'+colors[i]+'">'+l+' ('+segs[l]+')</div>'+
-      '<div style="font-size:10px;margin-top:3px">'+segBrands[l].join(', ')+'</div></div>'
-    ).join('')+'</div>'+
-    '<div style="margin-top:10px;font-size:10.5px;color:#8a7e6a;border-top:1px solid rgba(255,255,255,.08);padding-top:8px">'+
-    '<b>Luxury:</b> $12-18+/kg (Geisha, Blue Mountain, Kona)<br>'+
-    '<b>Specialty:</b> $9.5-12/kg (SCA 80-85점)<br>'+
-    '<b>Premium:</b> $8-10.5/kg (명산지 싱글오리진)<br>'+
-    '<b>MidRange:</b> $6-8/kg (블렌드 및 상업용)<br>'+
-    '<b>Budget:</b> $3.5-6/kg (로부스타 및 저가 아라비카)</div>';
+    const segDescs={
+      'Luxury':{
+        name:'럭셔리 (Luxury)',
+        price:'$12.00 ~ $18.00+/kg',
+        sca:'SCA 85점 이상, 희소 품종 및 한정 생산',
+        target:'커피 컬렉터, 고급 호텔&#183;레스토랑, 선물용 시장',
+        desc:'게이샤(Geisha), 블루마운틴(Blue Mountain), 코나(Kona) 등 세계적으로 희소한 품종 또는 산지의 커피. Cup of Excellence 수상작 중 일부는 경매에서 $100~$600+/lb에 낙찰되기도 합니다. 연간 생산량이 극히 제한적이며, 단일 농장(Single Estate) 추적이 가능한 마이크로롯(micro-lot) 중심.',
+        market:'전 세계 커피 시장의 약 2~3% 차지. 그러나 금액 기준으로는 스페셜티 시장 매출의 15~20%를 점유.',
+        trend:'연간 8~12% 성장. 아시아(일본, 중국, 한국) 럭셔리 시장이 특히 급성장 중.',
+        ref:'Ref: Alliance for Coffee Excellence (ACE). Cup of Excellence Auction Results. cupofexcellence.org'
+      },
+      'Specialty':{
+        name:'스페셜티 (Specialty)',
+        price:'$9.50 ~ $12.00/kg',
+        sca:'SCA 80~85점 (Q-Grader 평가 기준)',
+        target:'스페셜티 카페 고객, 로스터 구독 서비스 이용자, 커피 애호가',
+        desc:'SCA(Specialty Coffee Association) 기준 80점 이상을 획득한 커피. 산지, 농장, 가공 방식까지 완전한 추적성(traceability)을 제공합니다. 다이렉트 트레이드(Direct Trade) 또는 관계 기반 거래(Relationship Coffee)가 일반적이며, 시즌별 프로필 변화를 즐기는 소비자층이 주요 대상.',
+        market:'글로벌 커피 시장의 약 8~12%. 미국 스페셜티 커피 시장은 $48B(2023) 규모.',
+        trend:'연간 10~15% 성장. 제3의 물결(Third Wave) 이후 지속 확대 중.',
+        ref:'Ref: SCA (2023). "Specialty Coffee Retail Value Report." sca.coffee/research'
+      },
+      'Premium':{
+        name:'프리미엄 (Premium)',
+        price:'$8.00 ~ $10.50/kg',
+        sca:'SCA 75~80점 또는 명산지 인지도 기반',
+        target:'품질 중시 소비자, 프리미엄 카페 체인(Starbucks Reserve 등), 홈브루잉 입문자',
+        desc:'콜롬비아 수프리모(Supremo), 자바 에스테이트(Java Estate), 술라웨시 토라자(Sulawesi Toraja) 등 인지도 높은 산지의 싱글오리진 커피. 대형 스페셜티 체인의 프리미엄 라인에 주로 사용되며, 산지명이 브랜드 가치의 핵심입니다. 공정무역, 유기농 인증을 겸비한 제품이 많습니다.',
+        market:'글로벌 커피 시장의 약 15~20%. 가장 빠르게 성장하는 세그먼트 중 하나.',
+        trend:'연간 7~10% 성장. 제3의 물결 영향으로 MidRange에서 상향 이동 추세.',
+        ref:'Ref: ICO (2023). "Coffee Market Report." ico.org'
+      },
+      'MidRange':{
+        name:'미드레인지 (Mid-Range)',
+        price:'$6.00 ~ $8.00/kg',
+        sca:'상업용 고급 등급 (Commercial Premium)',
+        target:'일반 소비자, 슈퍼마켓 구매자, 체인 카페 이용자',
+        desc:'브랜드 인지도와 가격의 균형을 추구하는 가장 큰 매출 세그먼트. Lavazza, Folgers, Maxwell House 등 대형 브랜드가 이 구간에 위치합니다. 여러 산지의 블렌드(blend)가 일반적이며, 일관된 맛 프로필 유지가 핵심 경쟁력. 브라질 산토스(Santos), 세하두(Cerrado) 등이 주요 원료.',
+        market:'글로벌 커피 시장의 약 45~55% (매출 기준 최대 세그먼트).',
+        trend:'연간 2~3% 안정적 성장. 일부 소비자가 Premium/Specialty로 상향 이동 중.',
+        ref:'Ref: Euromonitor (2024). "Coffee: Global Industry Overview." euromonitor.com'
+      },
+      'Budget':{
+        name:'버짓 (Budget / Economy)',
+        price:'$3.50 ~ $6.00/kg',
+        sca:'상업용 표준 등급 (Standard / Exchange Grade)',
+        target:'가격 민감 소비자, 인스턴트 커피 시장, 자판기&#183;대량 급식',
+        desc:'로부스타(Robusta) 블렌드 또는 저가 아라비카가 주를 이룸. 인스턴트 커피(Nescaf&#233; 등), 자판기용, 대용량 오피스 커피에 주로 사용됩니다. 맛보다 카페인 함량과 가격 효율이 우선. 베트남, 인도네시아산 로부스타가 주요 원료.',
+        market:'글로벌 커피 시장의 약 25~30% (물량 기준으로는 최대).',
+        trend:'선진국에서는 감소 추세(-1~2%/년), 개발도상국에서는 여전히 성장.',
+        ref:'Ref: Panhuysen, S. &amp; Pierrot, J. (2024). Coffee Barometer 2024. coffeebarometer.org'
+      }
+    };
+    info.innerHTML=labels.map((l,i)=>{
+      const d=segDescs[l]||{};
+      return '<div style="padding:10px;background:rgba(0,0,0,.15);border-radius:8px;border-left:3px solid '+colors[i]+';margin-bottom:8px">'+
+      '<div style="font-weight:700;font-size:13px;color:'+colors[i]+'">'+(d.name||l)+' ('+segs[l]+'개)</div>'+
+      (d.price?'<div style="margin-top:6px"><span style="color:#d4a853;font-weight:600;font-size:10px">PRICE RANGE (가격대)</span><div style="font-size:10.5px;margin-top:2px">'+d.price+'</div></div>':'')+
+      (d.sca?'<div style="margin-top:5px"><span style="color:#9b59b6;font-weight:600;font-size:10px">QUALITY STANDARD (품질 기준)</span><div style="font-size:10.5px;margin-top:2px">'+d.sca+'</div></div>':'')+
+      (d.target?'<div style="margin-top:5px"><span style="color:#3498db;font-weight:600;font-size:10px">TARGET CONSUMER (타깃 소비자)</span><div style="font-size:10.5px;margin-top:2px">'+d.target+'</div></div>':'')+
+      (d.desc?'<div style="margin-top:5px"><span style="color:#c8885a;font-weight:600;font-size:10px">DESCRIPTION (상세 설명)</span><div style="font-size:10.5px;margin-top:2px">'+d.desc+'</div></div>':'')+
+      (d.market?'<div style="margin-top:5px"><span style="color:#2ecc71;font-weight:600;font-size:10px">MARKET SHARE (시장 점유율)</span><div style="font-size:10.5px;margin-top:2px">'+d.market+'</div></div>':'')+
+      (d.trend?'<div style="margin-top:5px"><span style="color:#e67e22;font-weight:600;font-size:10px">GROWTH TREND (성장 추세)</span><div style="font-size:10.5px;margin-top:2px">'+d.trend+'</div></div>':'')+
+      (d.ref?'<div style="margin-top:4px;font-size:9px;color:#6b5e4a;font-style:italic">'+d.ref+'</div>':'')+
+      '<div style="font-size:10px;margin-top:5px;padding-top:4px;border-top:1px solid rgba(255,255,255,.06);color:#8a7e6a">&#9749; 브랜드: '+segBrands[l].join(', ')+'</div></div>';
+    }).join('');
   }
   else if(type==='method'){
     title.innerHTML='&#9881;&#65039; 가공방식별 브랜드 분포';
