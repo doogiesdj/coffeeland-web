@@ -653,7 +653,10 @@ function renderTrace(trace){
   document.getElementById('traceTable').innerHTML=`<thead><tr><th>메뉴</th><th>브랜드</th><th>농장</th><th>국가</th></tr></thead><tbody>${rows}</tbody>`;
 }
 
-fetch('coffeeland_data.json').then(r=>r.json()).then(data=>{
+/* JSON은 대시보드 레포에서 자동 생성됨 — RDF 수정만 하면 여기에 자동 반영 */
+const JSON_PRIMARY='https://doogiesdj.github.io/CoffeeLand_Ontology-dashboard/coffeeland_data.json';
+const JSON_FALLBACK='coffeeland_data.json';
+fetch(JSON_PRIMARY).then(r=>{if(!r.ok)throw new Error(r.status);return r.json()}).catch(()=>fetch(JSON_FALLBACK).then(r=>r.json())).then(data=>{
   D=data;
   /* 누락 필드 방어 초기화 */
   data.consumer_warehouses=data.consumer_warehouses||[];
