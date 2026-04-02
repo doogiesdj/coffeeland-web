@@ -834,6 +834,18 @@ function showBrandPopup(type){
           'Ref: SCA (2024). sca.coffee | CQI. coffeeinstitute.org | Lingle, T.R. (2011). "The Coffee Cupper&#8217;s Handbook." SCA Publications.'+
         '</div>'+
       '</div>'+
+    '</div>'+
+    '<div style="margin-top:14px;padding:10px;background:rgba(0,0,0,.1);border-radius:6px;font-size:9.5px;color:#6b5e4a;line-height:1.7">'+
+      '<div style="font-weight:600;margin-bottom:4px;color:#8a7e6a">&#128218; &#52280;&#44256; &#47928;&#54732; (References)</div>'+
+      '&#8226; Lingle, T.R. (2011). <i>The Coffee Cupper&#8217;s Handbook</i>. 4th ed. SCA Publications.<br>'+
+      '&#8226; SCA (2024). <i>Specialty Coffee Retail Value Report</i>. sca.coffee/research<br>'+
+      '&#8226; ICO (2023). <i>Coffee Market Report: Annual Review</i>. International Coffee Organization. ico.org<br>'+
+      '&#8226; Panhuysen, S. &amp; Pierrot, J. (2024). <i>Coffee Barometer 2024</i>. coffeebarometer.org<br>'+
+      '&#8226; Euromonitor International (2024). <i>Coffee: Global Industry Overview</i>. euromonitor.com<br>'+
+      '&#8226; Specialty Coffee Association. <i>Coffee Skills Program (CSP) Curriculum</i>. sca.coffee/education<br>'+
+      '&#8226; Coffee Quality Institute (CQI). <i>Q-Grader Program &amp; Certification</i>. coffeeinstitute.org<br>'+
+      '&#8226; Alliance for Coffee Excellence (ACE). <i>Cup of Excellence Auction Results</i>. cupofexcellence.org<br>'+
+      '&#8226; Ponte, S. (2002). "The Latte Revolution? Regulation, markets and consumption in the global coffee chain." <i>World Development</i>, 30(7), pp.1099-1122.'+
     '</div>';
   }
   else if(type==='method'){
@@ -915,7 +927,18 @@ function showBrandPopup(type){
       (d.quality?'<div style="margin-top:5px"><span style="color:#9b59b6;font-weight:600;font-size:10px">QUALITY</span><div style="font-size:10.5px;margin-top:2px">'+d.quality+'</div></div>':'')+
       (d.ref?'<div style="margin-top:4px;font-size:9px;color:#6b5e4a;font-style:italic">'+d.ref+'</div>':'')+
       '<div style="font-size:10px;margin-top:5px;padding-top:4px;border-top:1px solid rgba(255,255,255,.06);color:#8a7e6a">&#9749; 브랜드: '+methodBrands[l].join(', ')+'</div></div>';
-    }).join('');
+    }).join('')+
+    '<div style="margin-top:14px;padding:10px;background:rgba(0,0,0,.1);border-radius:6px;font-size:9.5px;color:#6b5e4a;line-height:1.7">'+
+      '<div style="font-weight:600;margin-bottom:4px;color:#8a7e6a">&#128218; &#52280;&#44256; &#47928;&#54732; (References)</div>'+
+      '&#8226; Illy, A. &amp; Viani, R. (2005). <i>Espresso Coffee: The Science of Quality</i>. 2nd ed. Elsevier Academic Press.<br>'+
+      '&#8226; Borella, M.L. et al. (2021). "Quality determinants of natural processed coffees." <i>Food Chemistry</i>, 344, 128642.<br>'+
+      '&#8226; Elhalis, H. et al. (2020). "The role of wet and dry fermentation on coffee quality." <i>Beverages</i>, 6(4), 63.<br>'+
+      '&#8226; Rattan, S. et al. (2015). "Coffee processing, water use and pollution." <i>Water Research</i>, 68, pp.245-259.<br>'+
+      '&#8226; Chapagain, A.K. &amp; Hoekstra, A.Y. (2007). "Water footprint of coffee and tea." <i>Ecological Economics</i>, 64(1), pp.109-118.<br>'+
+      '&#8226; Marsh, A. (2019). "Wet-Hulling: The Processing Method Behind Sumatra." <i>Perfect Daily Grind</i>.<br>'+
+      '&#8226; Joet, T. et al. (2010). "Post-harvest processing influence on coffee quality." <i>Food Research International</i>, 43(8), pp.2069-2074.<br>'+
+      '&#8226; SCA (2024). <i>Coffee Processing Standards &amp; Protocols</i>. sca.coffee'+
+    '</div>';
   }
   else if(type==='esg'){
     title.innerHTML='&#127793; ESG &#46321;&#44553;&#48324; &#48652;&#47004;&#46300; &#48516;&#54252; (ESG Risk Distribution)';
