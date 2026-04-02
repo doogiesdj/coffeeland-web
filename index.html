@@ -727,17 +727,74 @@ function showBrandPopup(type){
       data:{labels:labels.map(l=>l.replace(/_/g,' ')),datasets:[{data:Object.values(methods),backgroundColor:colors,borderColor:'rgba(0,0,0,.3)',borderWidth:2}]},
       options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{color:'#a8987e',font:{size:12}}}}}
     });
-    const descs={'Washed':'수세식 — 체리 과육 제거 후 발효&#183;수세 처리. 깨끗하고 밝은 산미가 특징. 중남미, 동아프리카 대표 가공법.',
-      'Natural':'건식 — 체리 통째로 건조. 과일향이 풍부하고 바디감이 강함. 에티오피아, 브라질 전통 가공법.',
-      'Honey':'허니 — 과육 일부를 남기고 건조. Washed와 Natural의 중간 풍미. 코스타리카에서 발전.',
-      'GilingBasah WetHulled':'길링 바사 — 인도네시아 고유 습식탈곡법. 파치먼트 상태에서 탈곡. 허브, 흙향 특징. 수마트라 만델링 대표.',
-      'PulpedNatural':'펄프드 내추럴 — 과육 제거 후 점액질 잔존 상태로 건조. 브라질에서 주로 사용.'};
-    info.innerHTML=labels.map((l,i)=>
-      '<div style="padding:8px;background:rgba(0,0,0,.15);border-radius:6px;border-left:3px solid '+colors[i]+';margin-bottom:6px">'+
-      '<div style="font-weight:600;color:'+colors[i]+'">'+l.replace(/_/g,' ')+' ('+methods[l]+'개)</div>'+
-      '<div style="font-size:10.5px;margin-top:3px">'+(descs[l]||'')+'</div>'+
-      '<div style="font-size:10px;margin-top:3px;color:#8a7e6a">브랜드: '+methodBrands[l].join(', ')+'</div></div>'
-    ).join('');
+    const descs={
+      'Washed':{
+        name:'수세식 (Washed / Fully Washed)',
+        process:'체리 수확 &#8594; 과육 제거(디펄핑) &#8594; 발효조에서 12-72시간 발효 &#8594; 깨끗한 물로 수세 &#8594; 파치먼트 건조(10-15일) &#8594; 탈곡',
+        flavor:'깨끗하고 밝은 산미(acidity), 투명한 풍미, 꽃&#183;감귤 노트. 테루아(terroir)가 가장 잘 드러나는 가공법.',
+        regions:'콜롬비아, 케냐, 에티오피아(일부), 중미 전역, 르완다',
+        env:'&#9888; 리터/kg당 약 130-150L의 물 사용. 폐수(커피 펄프 침출수)는 BOD가 높아 수질 오염 위험. 최근 Eco-pulper, 폐수 재순환 시스템으로 용수 80% 절감 가능.',
+        quality:'SCA 스페셜티 대회에서 가장 높은 비율을 차지. 일관된 품질 관리 용이.',
+        ref:'Ref: Rattan, S. et al. (2015). "Coffee Processing and Water Resources." Water Research, 68.'
+      },
+      'Natural':{
+        name:'건식 (Natural / Dry Process)',
+        process:'체리 통째로 수확 &#8594; 건조대(African bed) 또는 패티오에서 2-4주 건조 &#8594; 건조된 체리 탈곡 &#8594; 생두 분리',
+        flavor:'과일향(블루베리, 딸기, 열대과일)이 풍부하고 바디감이 강함. 단맛이 두드러지며 와인 같은 복합성.',
+        regions:'에티오피아, 브라질, 예멘, 인도(말라바르)',
+        env:'&#9989; 물 사용 거의 없음(Washed 대비 95% 절감). 그러나 넓은 건조 면적 필요, 건조 중 곰팡이&#183;과발효 위험으로 품질 편차가 큼.',
+        quality:'최근 스페셜티 시장에서 재평가. 에티오피아 Yirgacheffe Natural이 CoE 수상 다수.',
+        ref:'Ref: Borella, M.L. et al. (2021). "Quality and Sustainability of Natural Processed Coffees." Food Chemistry, 344.'
+      },
+      'Honey':{
+        name:'허니 프로세스 (Honey / Miel)',
+        process:'체리 디펄핑 &#8594; 점액질(mucilage) 일부 또는 전부 잔존 &#8594; 건조(점액질 잔존 비율에 따라 White/Yellow/Red/Black Honey 구분)',
+        flavor:'Washed의 깔끔함과 Natural의 달콤함 사이. 캐러멜, 갈색 설탕, 스톤프루트 노트. Black Honey일수록 Natural에 가까움.',
+        regions:'코스타리카(발상지), 엘살바도르, 과테말라, 브라질',
+        env:'&#9989; Washed 대비 물 사용 80% 절감. 점액질 건조 시 끈적임으로 인해 노동 집약적이며 매우 세심한 건조 관리 필요.',
+        quality:'CoE 코스타리카에서 Honey Process 수상작 다수. SCA 85+ 도달 가능.',
+        ref:'Ref: Elhalis, H. et al. (2020). "Honey Processing in Specialty Coffee." Beverages, 6(4), 63.'
+      },
+      'GilingBasah WetHulled':{
+        name:'길링 바사 (Giling Basah / Wet-Hulled)',
+        process:'체리 디펄핑 &#8594; 짧은 발효(수 시간) &#8594; 수분 함량 30-35%에서 파치먼트 탈곡(일반 12%와 달리 높은 수분) &#8594; 생두 상태로 추가 건조',
+        flavor:'인도네시아 고유의 풍미: 흙향(earthy), 허브, 담배, 다크초콜릿, 낮은 산미, 무거운 바디감. "수마트라 맛"의 핵심.',
+        regions:'인도네시아 — 수마트라(만델링, 가요), 술라웨시(토라자), 자바',
+        env:'&#9888; 중간 수준 물 사용. 고수분 탈곡으로 곰팡이 위험 존재. 열대 다우 기후에서 빠른 건조가 어려워 개발된 현지 적응형 가공법.',
+        quality:'독특한 풍미 프로필로 스페셜티 시장에서 니치 포지셔닝. Starbucks Sumatra 등 대형 브랜드 채택.',
+        ref:'Ref: Marsh, A. (2019). "Wet-Hulling: The Processing Method Behind Sumatra Coffee." Perfect Daily Grind.'
+      },
+      'WetHulled':{
+        name:'습식 탈곡 (Wet-Hulled)',
+        process:'길링 바사와 동일한 공정. 체리 디펄핑 &#8594; 짧은 발효 &#8594; 고수분(30-35%) 상태에서 파치먼트 탈곡 &#8594; 생두 건조',
+        flavor:'흙향, 허브, 삼나무, 다크초콜릿, 무거운 바디. 전형적인 인도네시아 자바/수마트라 프로필.',
+        regions:'인도네시아 (자바, 수마트라)',
+        env:'&#9888; 중간 수준 물 사용. 높은 수분에서 탈곡하므로 생두 표면이 푸르스름(bluish green)해지는 특징.',
+        quality:'자바 에스테이트 커피의 전통 가공법. WetHulled 자바는 에이징(Aged Java)으로도 유명.',
+        ref:'Ref: Specialty Coffee Association. "Coffee Processing Methods." sca.coffee'
+      },
+      'PulpedNatural':{
+        name:'펄프드 내추럴 (Pulped Natural / Semi-Washed)',
+        process:'체리 디펄핑 &#8594; 점액질 제거 없이 바로 건조(발효 단계 생략) &#8594; 건조 후 탈곡',
+        flavor:'Natural보다 깔끔하고 Washed보다 달콤한 중간 풍미. 초콜릿, 견과류, 부드러운 과일 노트.',
+        regions:'브라질(발상지), 코스타리카, 콜롬비아 일부',
+        env:'&#9989; Washed 대비 물 사용 60% 절감. 발효 단계가 없어 폐수 발생 최소.',
+        quality:'브라질 스페셜티 커피의 대표 가공법. Cup of Excellence 브라질에서 높은 비율.',
+        ref:'Ref: Joet, T. et al. (2010). "Influence of Post-harvest Processing on Coffee Quality." Food Research International, 43(8).'
+      }
+    };
+    info.innerHTML=labels.map((l,i)=>{
+      const d=descs[l]||descs[l.replace(/ /g,'')]||{};
+      return '<div style="padding:10px;background:rgba(0,0,0,.15);border-radius:8px;border-left:3px solid '+colors[i]+';margin-bottom:8px">'+
+      '<div style="font-weight:700;font-size:13px;color:'+colors[i]+'">'+(d.name||l.replace(/_/g,' '))+' ('+methods[l]+'개)</div>'+
+      (d.process?'<div style="margin-top:6px"><span style="color:#d4a853;font-weight:600;font-size:10px">PROCESS</span><div style="font-size:10.5px;margin-top:2px">'+d.process+'</div></div>':'')+
+      (d.flavor?'<div style="margin-top:5px"><span style="color:#c8885a;font-weight:600;font-size:10px">FLAVOR</span><div style="font-size:10.5px;margin-top:2px">'+d.flavor+'</div></div>':'')+
+      (d.regions?'<div style="margin-top:5px"><span style="color:#7aabcc;font-weight:600;font-size:10px">REGIONS</span><div style="font-size:10.5px;margin-top:2px">'+d.regions+'</div></div>':'')+
+      (d.env?'<div style="margin-top:5px"><span style="color:#5dbb85;font-weight:600;font-size:10px">ENVIRONMENT</span><div style="font-size:10.5px;margin-top:2px">'+d.env+'</div></div>':'')+
+      (d.quality?'<div style="margin-top:5px"><span style="color:#9b59b6;font-weight:600;font-size:10px">QUALITY</span><div style="font-size:10.5px;margin-top:2px">'+d.quality+'</div></div>':'')+
+      (d.ref?'<div style="margin-top:4px;font-size:9px;color:#6b5e4a;font-style:italic">'+d.ref+'</div>':'')+
+      '<div style="font-size:10px;margin-top:5px;padding-top:4px;border-top:1px solid rgba(255,255,255,.06);color:#8a7e6a">&#9749; 브랜드: '+methodBrands[l].join(', ')+'</div></div>';
+    }).join('');
   }
   else if(type==='esg'){
     title.innerHTML='&#127793; ESG 등급별 브랜드 분포';
