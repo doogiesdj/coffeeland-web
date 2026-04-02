@@ -1252,21 +1252,16 @@ function renderFlow(nodes,links){
     popup.style.display='flex';
   }
 
-  let clickedNode=null;
+  /* Event delegation on SVG for reliable click/hover on nodes */
   allNodes.forEach(g=>{
     const nid=g.getAttribute('data-id');
     g.style.cursor='pointer';
-    g.addEventListener('mouseenter',()=>{if(!clickedNode)highlightNode(nid)});
-    g.addEventListener('mouseleave',()=>{if(!clickedNode)resetHighlight()});
-    g.addEventListener('click',(e)=>{
-      e.stopPropagation();
-      highlightNode(nid);
-      showFocusView(nid);
-    });
-  });
-  /* Click outside to reset */
-  svg.addEventListener('click',(e)=>{
-    if(e.target===svg||e.target.tagName==='svg'){clickedNode=null;resetHighlight()}
+    /* Make child elements non-interactive so g receives events */
+    g.querySelectorAll('rect,text').forEach(el=>el.style.pointerEvents='none');
+    g.style.pointerEvents='all';
+    g.addEventListener('mouseenter',()=>highlightNode(nid));
+    g.addEventListener('mouseleave',()=>resetHighlight());
+    g.addEventListener('click',()=>showFocusView(nid));
   });
 }
 
