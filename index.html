@@ -333,6 +333,27 @@ function renderMap(farms,ports){
     const map=L.map('map',{center:[20,15],zoom:2,zoomControl:true});
     L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{attribution:'&copy; OpenStreetMap &copy; CARTO',maxZoom:19,subdomains:'abcd'}).addTo(map);
 
+    /* Country borders on hover */
+    const borderLayer=L.layerGroup().addTo(map);
+    const nameMap={'South Korea':'Korea, Republic of','USA':'United States of America','UK':'United Kingdom','Czech Republic':'Czech Republic','Czech_Republic':'Czech Republic','Saudi Arabia':'Saudi Arabia','Saudi_Arabia':'Saudi Arabia','Costa Rica':'Costa Rica','Costa_Rica':'Costa Rica','Papua New Guinea':'Papua New Guinea','Papua_New_Guinea':'Papua New Guinea','Dominican Republic':'Dominican Republic','Dominican_Republic':'Dominican Republic','El Salvador':'El Salvador','El_Salvador':'El Salvador'};
+    let countryGeo=null;
+    let hoveredLayer=null;
+    fetch('https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson')
+      .then(r=>r.json()).then(geo=>{countryGeo=geo}).catch(()=>{});
+    function showBorder(countryName){
+      if(hoveredLayer){borderLayer.removeLayer(hoveredLayer);hoveredLayer=null}
+      if(!countryGeo||!countryName)return;
+      const cn=countryName.replace(/_/g,' ');
+      const lookup=nameMap[cn]||nameMap[countryName]||cn;
+      const feat=countryGeo.features.find(f=>{
+        const n=f.properties.ADMIN||f.properties.name||'';
+        return n===lookup||n===cn||n.toLowerCase()===cn.toLowerCase()||n.toLowerCase()===lookup.toLowerCase();
+      });
+      if(feat){
+        hoveredLayer=L.geoJSON(feat,{style:{color:'#e74c3c',weight:2.5,fillColor:'#e74c3c',fillOpacity:0.08,dashArray:'6 3'}}).addTo(borderLayer);
+      }
+    }
+
     const farmLayer=L.layerGroup().addTo(map);
     const cpLayer=L.layerGroup().addTo(map);
     const ppLayer=L.layerGroup().addTo(map);
@@ -352,7 +373,8 @@ function renderMap(farms,ports){
     farms.forEach(f=>{
       const color=f.esg==='low'?'#2ecc71':f.esg==='high'?'#e74c3c':'#f39c12';
       L.circleMarker([f.lat,f.lng],{radius:7,fillColor:color,color:'rgba(0,0,0,.5)',weight:1.5,opacity:1,fillOpacity:.9}).addTo(farmLayer)
-        .bindPopup(`<div style="${ps}"><b style="color:#2ecc71">&#127807; ${f.name}</b><br><b>Country:</b> ${f.country}<br><b>CO&#8322;:</b> ${f.co2} kg/kg<br><b>ESG:</b> ${f.esg==='low'?'&#9989; Low':f.esg==='high'?'&#9888;&#65039; High':'&#128310; Mid'}<br><b>Brands:</b> ${f.brands.map(b=>b.replace(/_/g,' ')).join(', ')||'--'}</div>`);
+        .bindPopup(`<div style="${ps}"><b style="color:#2ecc71">&#127807; ${f.name}</b><br><b>Country:</b> ${f.country}<br><b>CO&#8322;:</b> ${f.co2} kg/kg<br><b>ESG:</b> ${f.esg==='low'?'&#9989; Low':f.esg==='high'?'&#9888;&#65039; High':'&#128310; Mid'}<br><b>Brands:</b> ${f.brands.map(b=>b.replace(/_/g,' ')).join(', ')||'--'}</div>`)
+        .on('mouseover',()=>showBorder(f.country)).on('mouseout',()=>showBorder(null));
     });
 
     /* 2. Consumer Ports */
@@ -360,7 +382,8 @@ function renderMap(farms,ports){
     cp.forEach(p=>{
       if(!p.lat)return;
       L.marker([p.lat,p.lng],{icon:mkIcon('#3498db','square',13)}).addTo(cpLayer)
-        .bindPopup(`<div style="${ps}"><b style="color:#3498db">&#9875; Consumer Port</b><br><b>${p.label}</b><br>Country: ${p.country||''}</div>`);
+        .bindPopup(`<div style="${ps}"><b style="color:#3498db">&#9875; Consumer Port</b><br><b>${p.label}</b><br>Country: ${p.country||''}</div>`)
+        .on('mouseover',()=>showBorder(p.country)).on('mouseout',()=>showBorder(null));
       L.marker([p.lat,p.lng],{icon:mkLabel(p.label,'#1a5276'),interactive:false}).addTo(cpLayer);
     });
 
@@ -369,7 +392,8 @@ function renderMap(farms,ports){
     pp.forEach(p=>{
       if(!p.lat)return;
       L.marker([p.lat,p.lng],{icon:mkIcon('#e67e22','square',13)}).addTo(ppLayer)
-        .bindPopup(`<div style="${ps}"><b style="color:#e67e22">&#9875; Producer Port</b><br><b>${p.label}</b><br>Country: ${p.country||''}</div>`);
+        .bindPopup(`<div style="${ps}"><b style="color:#e67e22">&#9875; Producer Port</b><br><b>${p.label}</b><br>Country: ${p.country||''}</div>`)
+        .on('mouseover',()=>showBorder(p.country)).on('mouseout',()=>showBorder(null));
       L.marker([p.lat,p.lng],{icon:mkLabel(p.label,'#7e3c00'),interactive:false}).addTo(ppLayer);
     });
 
@@ -378,7 +402,8 @@ function renderMap(farms,ports){
     cw.forEach(w=>{
       if(!w.lat)return;
       L.marker([w.lat,w.lng],{icon:mkIcon('#1abc9c','diamond',11)}).addTo(cwLayer)
-        .bindPopup(`<div style="${ps}"><b style="color:#1abc9c">&#127981; Consumer WH</b><br><b>${w.label}</b><br>Country: ${w.country||''}<br>Adjacent Port: ${(w.port||'').replace('Port_','').replace(/_/g,' ')}</div>`);
+        .bindPopup(`<div style="${ps}"><b style="color:#1abc9c">&#127981; Consumer WH</b><br><b>${w.label}</b><br>Country: ${w.country||''}<br>Adjacent Port: ${(w.port||'').replace('Port_','').replace(/_/g,' ')}</div>`)
+        .on('mouseover',()=>showBorder(w.country)).on('mouseout',()=>showBorder(null));
     });
 
     /* 5. Producer Warehouses */
@@ -386,7 +411,8 @@ function renderMap(farms,ports){
     pw.forEach(w=>{
       if(!w.lat)return;
       L.marker([w.lat,w.lng],{icon:mkIcon('#8b5e3c','diamond',11)}).addTo(pwLayer)
-        .bindPopup(`<div style="${ps}"><b style="color:#8b5e3c">&#127981; Producer WH</b><br><b>${w.label}</b><br>Country: ${w.country||''}<br>Adjacent Port: ${(w.port||'').replace('Port_','').replace(/_/g,' ')}</div>`);
+        .bindPopup(`<div style="${ps}"><b style="color:#8b5e3c">&#127981; Producer WH</b><br><b>${w.label}</b><br>Country: ${w.country||''}<br>Adjacent Port: ${(w.port||'').replace('Port_','').replace(/_/g,' ')}</div>`)
+        .on('mouseover',()=>showBorder(w.country)).on('mouseout',()=>showBorder(null));
     });
 
     /* 6. Country labels (producing countries with farm counts) */
@@ -394,7 +420,8 @@ function renderMap(farms,ports){
     Object.entries(farmCounts).forEach(([c,n])=>{
       const cc=countryCoords[c.replace(/ /g,'_')];
       if(cc){
-        L.marker(cc,{icon:L.divIcon({className:'',html:`<div style="color:#2c3e50;font:bold 11px/1 sans-serif;text-shadow:0 0 3px #fff,0 0 6px #fff;white-space:nowrap;text-align:center;pointer-events:none"><span style="color:#c0392b">&#127758;</span> ${c.replace(/_/g,' ')}<br><span style="font-size:9px;color:#555">${n} farm${n>1?'s':''}</span></div>`,iconSize:[0,0],iconAnchor:[40,-10]}),interactive:false}).addTo(countryLayer);
+        L.marker(cc,{icon:L.divIcon({className:'',html:`<div style="color:#2c3e50;font:bold 11px/1 sans-serif;text-shadow:0 0 3px #fff,0 0 6px #fff;white-space:nowrap;text-align:center;cursor:pointer"><span style="color:#c0392b">&#127758;</span> ${c.replace(/_/g,' ')}<br><span style="font-size:9px;color:#555">${n} farm${n>1?'s':''}</span></div>`,iconSize:[80,25],iconAnchor:[40,12]})}).addTo(countryLayer)
+          .on('mouseover',()=>showBorder(c)).on('mouseout',()=>showBorder(null));
       }
     });
 
