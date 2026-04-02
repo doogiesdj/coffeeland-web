@@ -333,16 +333,26 @@ function renderMap(farms,ports){
     const map=L.map('map',{center:[20,15],zoom:2,zoomControl:true});
     L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{attribution:'&copy; OpenStreetMap &copy; CARTO',maxZoom:19,subdomains:'abcd'}).addTo(map);
 
-    /* Country borders on hover */
+    /* Country borders on hover — interactive:false prevents flicker */
     const borderLayer=L.layerGroup().addTo(map);
     const nameMap={'South Korea':'Korea, Republic of','USA':'United States of America','UK':'United Kingdom','Czech Republic':'Czech Republic','Czech_Republic':'Czech Republic','Saudi Arabia':'Saudi Arabia','Saudi_Arabia':'Saudi Arabia','Costa Rica':'Costa Rica','Costa_Rica':'Costa Rica','Papua New Guinea':'Papua New Guinea','Papua_New_Guinea':'Papua New Guinea','Dominican Republic':'Dominican Republic','Dominican_Republic':'Dominican Republic','El Salvador':'El Salvador','El_Salvador':'El Salvador'};
     let countryGeo=null;
     let hoveredLayer=null;
+    let currentBorder=null;
+    let borderTimer=null;
     fetch('https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson')
       .then(r=>r.json()).then(geo=>{countryGeo=geo}).catch(()=>{});
     function showBorder(countryName){
+      if(borderTimer) clearTimeout(borderTimer);
+      if(!countryName){
+        borderTimer=setTimeout(()=>{
+          if(hoveredLayer){borderLayer.removeLayer(hoveredLayer);hoveredLayer=null;currentBorder=null}
+        },150);
+        return;
+      }
+      if(currentBorder===countryName) return;
       if(hoveredLayer){borderLayer.removeLayer(hoveredLayer);hoveredLayer=null}
-      if(!countryGeo||!countryName)return;
+      if(!countryGeo) return;
       const cn=countryName.replace(/_/g,' ');
       const lookup=nameMap[cn]||nameMap[countryName]||cn;
       const feat=countryGeo.features.find(f=>{
@@ -350,7 +360,8 @@ function renderMap(farms,ports){
         return n===lookup||n===cn||n.toLowerCase()===cn.toLowerCase()||n.toLowerCase()===lookup.toLowerCase();
       });
       if(feat){
-        hoveredLayer=L.geoJSON(feat,{style:{color:'#e74c3c',weight:2.5,fillColor:'#e74c3c',fillOpacity:0.08,dashArray:'6 3'}}).addTo(borderLayer);
+        hoveredLayer=L.geoJSON(feat,{style:{color:'#e74c3c',weight:2.5,fillColor:'#e74c3c',fillOpacity:0.08,dashArray:'6 3'},interactive:false}).addTo(borderLayer);
+        currentBorder=countryName;
       }
     }
 
