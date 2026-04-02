@@ -919,10 +919,10 @@ function showBrandPopup(type){
   }
   else if(type==='esg'){
     title.innerHTML='&#127793; ESG &#46321;&#44553;&#48324; &#48652;&#47004;&#46300; &#48516;&#54252; (ESG Risk Distribution)';
-    const esgGroups={'CO&#8322; &#51200;&#44048; (8+)':[],'&#48372;&#53685; (4-7)':[],'&#44256;&#50948;&#54744; (&#8804;3)':[]};
+    const esgGroups={['CO\u2082 \uC800\uAC10 (8+)']:[],['\uBCF4\uD1B5 (4-7)']:[],['\uACE0\uC704\uD5D8 (\u22643)']:[]};
     brands.forEach(b=>{
-      if(b.esg.co2>=8) esgGroups['CO&#8322; &#51200;&#44048; (8+)'].push(b.name);
-      else if(b.esg.co2<=3) esgGroups['&#44256;&#50948;&#54744; (&#8804;3)'].push(b.name);
+      if(b.esg.co2>=8) esgGroups['CO\u2082 \uC800\uAC10 (8+)'].push(b.name);
+      else if(b.esg.co2<=3) esgGroups['\uACE0\uC704\uD5D8 (\u22643)'].push(b.name);
       else esgGroups['&#48372;&#53685; (4-7)'].push(b.name);
     });
     const labels=Object.keys(esgGroups);
