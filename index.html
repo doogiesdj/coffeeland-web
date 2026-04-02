@@ -330,89 +330,103 @@ function renderMap(farms,ports){
   const lnk=document.createElement('link');lnk.rel='stylesheet';lnk.href='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css';document.head.appendChild(lnk);
   const sc=document.createElement('script');sc.src='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';
   sc.onload=()=>{
-    const map=L.map('map',{center:[15,20],zoom:2});
+    const map=L.map('map',{center:[20,15],zoom:2,zoomControl:true});
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; OpenStreetMap',maxZoom:18}).addTo(map);
 
-    /* Layer groups for toggle */
-    const layers={};
     const farmLayer=L.layerGroup().addTo(map);
     const cpLayer=L.layerGroup().addTo(map);
     const ppLayer=L.layerGroup().addTo(map);
     const cwLayer=L.layerGroup().addTo(map);
     const pwLayer=L.layerGroup().addTo(map);
+    const countryLayer=L.layerGroup().addTo(map);
 
-    /* Helper: div icon */
-    const mkIcon=(color,shape,size)=>L.divIcon({className:'',html:`<div style="width:${size}px;height:${size}px;background:${color};border:2px solid rgba(0,0,0,.3);border-radius:${shape==='circle'?'50%':shape==='diamond'?'2px':'2px'};${shape==='diamond'?'transform:rotate(45deg);':''}box-shadow:0 0 6px ${color}66"></div>`,iconSize:[size,size],iconAnchor:[size/2,size/2]});
+    const mkIcon=(color,shape,size)=>L.divIcon({className:'',html:`<div style="width:${size}px;height:${size}px;background:${color};border:2px solid rgba(255,255,255,.5);border-radius:${shape==='circle'?'50%':shape==='diamond'?'2px':'3px'};${shape==='diamond'?'transform:rotate(45deg);':''}box-shadow:0 0 8px ${color}88;cursor:pointer"></div>`,iconSize:[size,size],iconAnchor:[size/2,size/2]});
+    const mkLabel=(text,color)=>L.divIcon({className:'',html:`<div style="color:${color};font:bold 9px/1 sans-serif;text-shadow:0 0 4px rgba(0,0,0,.8),0 0 2px rgba(0,0,0,.9);white-space:nowrap;pointer-events:none">${text}</div>`,iconSize:[0,0],iconAnchor:[-8,4]});
 
-    /* 1. Farms - green circles */
+    /* Popup style */
+    const ps='font:12px/1.5 sans-serif;min-width:160px';
+
+    /* 1. Farms */
+    const farmCounts={};
+    farms.forEach(f=>{farmCounts[f.country]=(farmCounts[f.country]||0)+1});
     farms.forEach(f=>{
-      const color=f.esg==='low'?'#2d8a56':f.esg==='high'?'#c0392b':'#c0892a';
-      L.circleMarker([f.lat,f.lng],{radius:7,fillColor:color,color:'rgba(0,0,0,.4)',weight:1.5,opacity:1,fillOpacity:.85}).addTo(farmLayer)
-        .bindPopup(`<b>🌿 Farm: ${f.name}</b><br>Country: ${f.country}<br>CO₂: ${f.co2} kg/kg<br>Brands: ${f.brands.map(b=>b.replace(/_/g,' ')).join(', ')}`);
+      const color=f.esg==='low'?'#2ecc71':f.esg==='high'?'#e74c3c':'#f39c12';
+      L.circleMarker([f.lat,f.lng],{radius:7,fillColor:color,color:'rgba(0,0,0,.5)',weight:1.5,opacity:1,fillOpacity:.9}).addTo(farmLayer)
+        .bindPopup(`<div style="${ps}"><b style="color:#2ecc71">&#127807; ${f.name}</b><br><b>Country:</b> ${f.country}<br><b>CO&#8322;:</b> ${f.co2} kg/kg<br><b>ESG:</b> ${f.esg==='low'?'&#9989; Low':f.esg==='high'?'&#9888;&#65039; High':'&#128310; Mid'}<br><b>Brands:</b> ${f.brands.map(b=>b.replace(/_/g,' ')).join(', ')||'--'}</div>`);
     });
 
-    /* 2. Consumer Ports - blue squares */
-    (D.consumer_ports||[]).forEach(p=>{
-      if(!p.lat) return;
-      L.marker([p.lat,p.lng],{icon:mkIcon('#2980b9','square',12)}).addTo(cpLayer)
-        .bindPopup(`<b>⚓ Consumer Port: ${p.label}</b><br>Country: ${p.country||''}`);
+    /* 2. Consumer Ports */
+    const cp=D.consumer_ports||[];
+    cp.forEach(p=>{
+      if(!p.lat)return;
+      L.marker([p.lat,p.lng],{icon:mkIcon('#3498db','square',13)}).addTo(cpLayer)
+        .bindPopup(`<div style="${ps}"><b style="color:#3498db">&#9875; Consumer Port</b><br><b>${p.label}</b><br>Country: ${p.country||''}</div>`);
+      L.marker([p.lat,p.lng],{icon:mkLabel(p.label,'#85c1e9'),interactive:false}).addTo(cpLayer);
     });
 
-    /* 3. Producer Ports - orange squares */
-    (D.producer_ports||[]).forEach(p=>{
-      if(!p.lat) return;
-      L.marker([p.lat,p.lng],{icon:mkIcon('#e67e22','square',12)}).addTo(ppLayer)
-        .bindPopup(`<b>⚓ Producer Port: ${p.label}</b><br>Country: ${p.country||''}`);
+    /* 3. Producer Ports */
+    const pp=D.producer_ports||[];
+    pp.forEach(p=>{
+      if(!p.lat)return;
+      L.marker([p.lat,p.lng],{icon:mkIcon('#e67e22','square',13)}).addTo(ppLayer)
+        .bindPopup(`<div style="${ps}"><b style="color:#e67e22">&#9875; Producer Port</b><br><b>${p.label}</b><br>Country: ${p.country||''}</div>`);
+      L.marker([p.lat,p.lng],{icon:mkLabel(p.label,'#f0b27a'),interactive:false}).addTo(ppLayer);
     });
 
-    /* 4. Consumer Warehouses - cyan diamonds */
-    (D.consumer_warehouses||[]).forEach(w=>{
-      if(!w.lat) return;
-      L.marker([w.lat,w.lng],{icon:mkIcon('#1abc9c','diamond',10)}).addTo(cwLayer)
-        .bindPopup(`<b>🏭 Consumer WH: ${w.label}</b><br>Country: ${w.country||''}<br>Port: ${(w.port||'').replace('Port_','')}`);
+    /* 4. Consumer Warehouses */
+    const cw=D.consumer_warehouses||[];
+    cw.forEach(w=>{
+      if(!w.lat)return;
+      L.marker([w.lat,w.lng],{icon:mkIcon('#1abc9c','diamond',11)}).addTo(cwLayer)
+        .bindPopup(`<div style="${ps}"><b style="color:#1abc9c">&#127981; Consumer WH</b><br><b>${w.label}</b><br>Country: ${w.country||''}<br>Adjacent Port: ${(w.port||'').replace('Port_','').replace(/_/g,' ')}</div>`);
     });
 
-    /* 5. Producer Warehouses - brown diamonds */
-    (D.producer_warehouses||[]).forEach(w=>{
-      if(!w.lat) return;
-      L.marker([w.lat,w.lng],{icon:mkIcon('#8b5e3c','diamond',10)}).addTo(pwLayer)
-        .bindPopup(`<b>🏭 Producer WH: ${w.label}</b><br>Country: ${w.country||''}<br>Port: ${(w.port||'').replace('Port_','')}`);
+    /* 5. Producer Warehouses */
+    const pw=D.producer_warehouses||[];
+    pw.forEach(w=>{
+      if(!w.lat)return;
+      L.marker([w.lat,w.lng],{icon:mkIcon('#8b5e3c','diamond',11)}).addTo(pwLayer)
+        .bindPopup(`<div style="${ps}"><b style="color:#8b5e3c">&#127981; Producer WH</b><br><b>${w.label}</b><br>Country: ${w.country||''}<br>Adjacent Port: ${(w.port||'').replace('Port_','').replace(/_/g,' ')}</div>`);
     });
 
-    /* Also show old port_map entries not already shown */
-    ports.forEach(p=>{
-      const alreadyShown=(D.consumer_ports||[]).some(cp=>cp.id===p.id)||(D.producer_ports||[]).some(pp=>pp.id===p.id);
-      if(!alreadyShown){
-        L.marker([p.lat,p.lng],{icon:mkIcon('#7f8c8d','square',10)}).addTo(cpLayer)
-          .bindPopup(`<b>⚓ Port: ${p.label}</b>`);
+    /* 6. Country labels (producing countries with farm counts) */
+    const countryCoords={'Colombia':[4.5,-74],'Brazil':[-14,-52],'Ethiopia':[9,39],'Kenya':[-1,37],'Indonesia':[-5,115],'Guatemala':[15.5,-90],'Honduras':[15,-87],'Costa_Rica':[10,-84],'Peru':[-10,-76],'Vietnam':[16,108],'India':[21,79],'Jamaica':[18.2,-77.5],'Panama':[8.5,-80],'Mexico':[23,-102],'Rwanda':[-2,30],'Tanzania':[-6,35],'Uganda':[1.5,32.5],'Yemen':[15.5,48],'Nicaragua':[13,-85],'El_Salvador':[13.8,-89],'Papua_New_Guinea':[-6,144],'Dominican_Republic':[18.7,-70],'USA':[39,-98]};
+    Object.entries(farmCounts).forEach(([c,n])=>{
+      const cc=countryCoords[c.replace(/ /g,'_')];
+      if(cc){
+        L.marker(cc,{icon:L.divIcon({className:'',html:`<div style="color:#e0d6c8;font:bold 11px/1 sans-serif;text-shadow:0 0 6px rgba(0,0,0,.9);white-space:nowrap;text-align:center;pointer-events:none"><span style="color:#f1c40f">&#127758;</span> ${c.replace(/_/g,' ')}<br><span style="font-size:9px;color:#aaa">${n} farm${n>1?'s':''}</span></div>`,iconSize:[0,0],iconAnchor:[40,-10]}),interactive:false}).addTo(countryLayer);
       }
     });
 
-    /* Legend */
+    /* Legend with counts */
     const legend=L.control({position:'bottomright'});
     legend.onAdd=()=>{
       const div=L.DomUtil.create('div');
-      div.style.cssText='background:rgba(20,20,30,.9);padding:10px 14px;border-radius:8px;color:#e0d6c8;font:12px/1.6 JetBrains Mono,monospace;box-shadow:0 2px 8px rgba(0,0,0,.4)';
-      div.innerHTML=`
-        <div style="font-weight:700;margin-bottom:6px;font-size:13px">Supply Chain Legend</div>
-        <div><span style="display:inline-block;width:12px;height:12px;background:#2d8a56;border-radius:50%;vertical-align:middle;margin-right:6px"></span>Farm (Low CO₂)</div>
-        <div><span style="display:inline-block;width:12px;height:12px;background:#c0892a;border-radius:50%;vertical-align:middle;margin-right:6px"></span>Farm (Mid CO₂)</div>
-        <div><span style="display:inline-block;width:12px;height:12px;background:#c0392b;border-radius:50%;vertical-align:middle;margin-right:6px"></span>Farm (High CO₂)</div>
-        <div><span style="display:inline-block;width:12px;height:12px;background:#e67e22;border-radius:2px;vertical-align:middle;margin-right:6px"></span>Producer Port</div>
-        <div><span style="display:inline-block;width:12px;height:12px;background:#2980b9;border-radius:2px;vertical-align:middle;margin-right:6px"></span>Consumer Port</div>
-        <div><span style="display:inline-block;width:10px;height:10px;background:#8b5e3c;border-radius:2px;transform:rotate(45deg);vertical-align:middle;margin-right:8px"></span>Producer WH</div>
-        <div><span style="display:inline-block;width:10px;height:10px;background:#1abc9c;border-radius:2px;transform:rotate(45deg);vertical-align:middle;margin-right:8px"></span>Consumer WH</div>`;
+      div.style.cssText='background:rgba(15,15,25,.92);padding:12px 16px;border-radius:10px;color:#e0d6c8;font:11px/1.8 sans-serif;box-shadow:0 4px 12px rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.08)';
+      const dot=(c,r)=>`<span style="display:inline-block;width:${r?12:10}px;height:${r?12:10}px;background:${c};border-radius:${r?'50%':'2px'};${r?'':'transform:rotate(45deg);'}vertical-align:middle;margin-right:6px;border:1px solid rgba(255,255,255,.3)"></span>`;
+      div.innerHTML=`<div style="font-weight:700;margin-bottom:4px;font-size:13px;color:#f1c40f">&#9749; Supply Chain Map</div>
+        <div>${dot('#2ecc71',1)}Farm - Low CO&#8322; (${farms.filter(f=>f.esg==='low').length})</div>
+        <div>${dot('#f39c12',1)}Farm - Mid CO&#8322; (${farms.filter(f=>f.esg==='mid').length})</div>
+        <div>${dot('#e74c3c',1)}Farm - High CO&#8322; (${farms.filter(f=>f.esg==='high').length})</div>
+        <div style="border-top:1px solid rgba(255,255,255,.1);margin:4px 0"></div>
+        <div>${dot('#e67e22',0)}Producer Port (${pp.filter(p=>p.lat).length})</div>
+        <div>${dot('#3498db',0)}Consumer Port (${cp.filter(p=>p.lat).length})</div>
+        <div style="border-top:1px solid rgba(255,255,255,.1);margin:4px 0"></div>
+        <div>${dot('#8b5e3c',0)}Producer WH (${pw.filter(w=>w.lat).length})</div>
+        <div>${dot('#1abc9c',0)}Consumer WH (${cw.filter(w=>w.lat).length})</div>
+        <div style="border-top:1px solid rgba(255,255,255,.1);margin:4px 0"></div>
+        <div style="color:#aaa;font-size:10px">Total: ${farms.length} farms, ${cp.length+pp.length} ports, ${cw.length+pw.length} WH</div>`;
       return div;
     };
     legend.addTo(map);
 
-    /* Layer control */
     L.control.layers(null,{
-      '🌿 Farms':farmLayer,
-      '⚓ Consumer Ports':cpLayer,
-      '⚓ Producer Ports':ppLayer,
-      '🏭 Consumer WH':cwLayer,
-      '🏭 Producer WH':pwLayer
+      '&#127807; Farms':farmLayer,
+      '&#9875; Consumer Ports':cpLayer,
+      '&#9875; Producer Ports':ppLayer,
+      '&#127981; Consumer WH':cwLayer,
+      '&#127981; Producer WH':pwLayer,
+      '&#127758; Countries':countryLayer
     },{collapsed:false,position:'topright'}).addTo(map);
   };
   document.head.appendChild(sc);
