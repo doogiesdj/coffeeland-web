@@ -1192,6 +1192,67 @@ function renderFlow(nodes,links){
     window.scrollTo({top:Math.max(0,scrollY),behavior:'smooth'});
   }
 
+  /* Focus view: click a node → popup with only connected nodes re-laid out */
+  function showFocusView(nid){
+    const conn=getConnected(nid);
+    const connFarms=[],connBrands=[],connChains=[];
+    nodes.forEach(n=>{
+      if(!conn.nodes.has(n.id))return;
+      if(n.type==='farm')connFarms.push(n);
+      else if(n.type==='brand')connBrands.push(n);
+      else connChains.push(n);
+    });
+    const connLinkArr=links.filter(l=>conn.links.has(l.source+'|'+l.target));
+    const maxC=Math.max(connFarms.length,connBrands.length,connChains.length,1);
+    const RH=42,PT=55,PB=20,FW=700;
+    const FH=PT+maxC*RH+PB;
+    const fCol={farm:FW*.15,brand:FW*.5,chain:FW*.85};
+    const fPos={};
+    const fPlace=(arr,x)=>{const off=(maxC-arr.length)*RH/2;arr.forEach((n,i)=>{fPos[n.id]={x,y:PT+off+i*RH+RH/2}})};
+    fPlace(connFarms,fCol.farm);fPlace(connBrands,fCol.brand);fPlace(connChains,fCol.chain);
+    let sh='<defs><filter id="fglow"><feGaussianBlur stdDeviation="3" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>';
+    /* headers */
+    if(connFarms.length) sh+=`<text x="${fCol.farm}" y="28" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="11" fill="#5dbb85" font-weight="600">Farm (${connFarms.length})</text>`;
+    if(connBrands.length) sh+=`<text x="${fCol.brand}" y="28" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="11" fill="#c8885a" font-weight="600">Brand (${connBrands.length})</text>`;
+    if(connChains.length) sh+=`<text x="${fCol.chain}" y="28" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="11" fill="#7aabcc" font-weight="600">Chain (${connChains.length})</text>`;
+    /* links */
+    connLinkArr.forEach(l=>{
+      const s=fPos[l.source],t=fPos[l.target];if(!s||!t)return;
+      const mx=(s.x+t.x)/2;
+      const sc=l.type==='produces'?'rgba(200,136,90,.6)':'rgba(122,171,204,.6)';
+      sh+=`<path d="M${s.x+62},${s.y} C${mx},${s.y} ${mx},${t.y} ${t.x-62},${t.y}" fill="none" stroke="${sc}" stroke-width="2"/>`;
+    });
+    /* nodes */
+    [...connFarms,...connBrands,...connChains].forEach(n=>{
+      const p=fPos[n.id];if(!p)return;
+      const c=STROKE[n.type],bg=BG[n.type];
+      const isTarget=n.id===nid;
+      const lbl=n.label.length>18?n.label.slice(0,17)+'\u2026':n.label;
+      const ex=n.type==='farm'?'CO\u2082: '+n.co2:n.type==='brand'?'$'+(n.price?.toFixed(2)||'\u2014'):'';
+      sh+=`<g>
+        <rect x="${p.x-60}" y="${p.y-16}" width="120" height="32" rx="8" fill="${isTarget?c+'22':bg}" stroke="${c}" stroke-width="${isTarget?2.5:1.2}" ${isTarget?'filter="url(#fglow)"':''}/>
+        <text x="${p.x}" y="${p.y-2}" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="${isTarget?'700':'500'}" fill="${c}">${lbl}</text>
+        ${ex?`<text x="${p.x}" y="${p.y+11}" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="${c}99">${ex}</text>`:''}
+      </g>`;
+    });
+    /* Render popup */
+    let popup=document.getElementById('flowFocusPopup');
+    if(!popup){
+      popup=document.createElement('div');popup.id='flowFocusPopup';
+      popup.style.cssText='position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.7);z-index:9999;display:flex;align-items:center;justify-content:center';
+      popup.addEventListener('click',e=>{if(e.target===popup)popup.style.display='none'});
+      document.body.appendChild(popup);
+    }
+    const clickedName=nodes.find(n=>n.id===nid)?.label||nid;
+    popup.innerHTML=`<div style="background:var(--bg2,#1e1b16);border-radius:12px;padding:20px;max-width:780px;width:95%;max-height:85vh;overflow:auto;box-shadow:0 8px 32px rgba(0,0,0,.6);position:relative">
+      <button onclick="document.getElementById('flowFocusPopup').style.display='none'" style="position:absolute;top:10px;right:14px;background:none;border:none;color:#aaa;font-size:22px;cursor:pointer">&times;</button>
+      <div style="font-size:15px;font-weight:700;color:var(--text,#f2ece4);margin-bottom:4px">\u26d3 ${clickedName} \u2014 \uacf5\uae09\ub9dd \uc5f0\uacb0 \ubdf0</div>
+      <div style="font-size:11px;color:#8a7e6a;margin-bottom:12px">\ud074\ub9ad\ud55c \ub178\ub4dc\uc758 \uc804\uccb4 \uc5f0\uacb0 \uad00\uacc4\ub97c \ubcf4\uc5ec\uc90d\ub2c8\ub2e4. Farm \u2192 Brand \u2192 Chain</div>
+      <svg viewBox="0 0 ${FW} ${FH}" style="width:100%;height:auto;background:var(--bg3,#161310);border-radius:8px">${sh}</svg>
+    </div>`;
+    popup.style.display='flex';
+  }
+
   let clickedNode=null;
   allNodes.forEach(g=>{
     const nid=g.getAttribute('data-id');
@@ -1200,10 +1261,8 @@ function renderFlow(nodes,links){
     g.addEventListener('mouseleave',()=>{if(!clickedNode)resetHighlight()});
     g.addEventListener('click',(e)=>{
       e.stopPropagation();
-      if(clickedNode===nid){clickedNode=null;resetHighlight();return}
-      clickedNode=nid;
       highlightNode(nid);
-      centerOnNode(nid);
+      showFocusView(nid);
     });
   });
   /* Click outside to reset */
