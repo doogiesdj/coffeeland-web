@@ -688,6 +688,18 @@ function renderTrace(trace){
 
 fetch('coffeeland_data.json').then(r=>r.json()).then(data=>{
   D=data;
+  /* 누락 필드 방어 초기화 */
+  data.consumer_warehouses=data.consumer_warehouses||[];
+  data.producer_warehouses=data.producer_warehouses||[];
+  data.import_brokers=data.import_brokers||[];
+  data.export_brokers=data.export_brokers||[];
+  data.logistics_providers=data.logistics_providers||[];
+  data.consumer_ports=data.consumer_ports||[];
+  data.producer_ports=data.producer_ports||[];
+  data.farm_export_port=data.farm_export_port||{};
+  data.import_brokers.forEach(ib=>{ib.brands=ib.brands||[];ib.warehouses=ib.warehouses||[];ib.ports=ib.ports||[]});
+  data.export_brokers.forEach(eb=>{eb.brands=eb.brands||[];eb.ports=eb.ports||[]});
+  data.logistics_providers.forEach(lp=>{lp.from=lp.from||[];lp.to=lp.to||[]});
   renderStats(data.stats);
   renderMap(data.farm_map,data.port_map);
   renderESG(data.brands);
