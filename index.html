@@ -1078,6 +1078,74 @@ function showBrandPopup(type){
   popup.style.display='flex';
 }
 
+/* Attach drag-to-pan + wheel/pinch-to-zoom to an SVG that already has a viewBox set.
+   Returns {zoomIn,zoomOut,reset} for wiring to external control buttons. */
+function attachPanZoom(svgEl,{minScale=0.4,maxScale=6}={}){
+  const vb=svgEl.viewBox.baseVal;
+  const orig={x:vb.x,y:vb.y,w:vb.width,h:vb.height};
+  let cur={...orig};
+  const apply=()=>svgEl.setAttribute('viewBox',`${cur.x} ${cur.y} ${cur.w} ${cur.h}`);
+  const toSvgPt=(clientX,clientY)=>{
+    const r=svgEl.getBoundingClientRect();
+    return{x:cur.x+(clientX-r.left)/r.width*cur.w,y:cur.y+(clientY-r.top)/r.height*cur.h};
+  };
+  const zoomAt=(clientX,clientY,factor)=>{
+    const newW=cur.w*factor,newH=cur.h*factor;
+    const scale=orig.w/newW;
+    if(scale<minScale||scale>maxScale)return;
+    const pt=toSvgPt(clientX,clientY);
+    cur.x=pt.x-(pt.x-cur.x)*(newW/cur.w);
+    cur.y=pt.y-(pt.y-cur.y)*(newH/cur.h);
+    cur.w=newW;cur.h=newH;apply();
+  };
+  svgEl.addEventListener('wheel',e=>{
+    e.preventDefault();
+    zoomAt(e.clientX,e.clientY,e.deltaY<0?0.88:1.14);
+  },{passive:false});
+  const pointers=new Map();
+  let pinchStart=null;
+  svgEl.addEventListener('pointerdown',e=>{
+    svgEl.setPointerCapture(e.pointerId);
+    pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    svgEl.style.cursor='grabbing';
+    if(pointers.size===2){
+      const[a,b]=[...pointers.values()];
+      pinchStart={dist:Math.hypot(a.x-b.x,a.y-b.y),cx:(a.x+b.x)/2,cy:(a.y+b.y)/2};
+    }
+  });
+  svgEl.addEventListener('pointermove',e=>{
+    if(!pointers.has(e.pointerId))return;
+    const prev=pointers.get(e.pointerId);
+    pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    if(pointers.size===1){
+      const r=svgEl.getBoundingClientRect();
+      const dx=(e.clientX-prev.x)/r.width*cur.w;
+      const dy=(e.clientY-prev.y)/r.height*cur.h;
+      cur.x-=dx;cur.y-=dy;apply();
+    }else if(pointers.size===2&&pinchStart){
+      const[a,b]=[...pointers.values()];
+      const dist=Math.hypot(a.x-b.x,a.y-b.y);
+      zoomAt(pinchStart.cx,pinchStart.cy,pinchStart.dist/dist);
+      pinchStart.dist=dist;
+    }
+  });
+  const endPointer=e=>{
+    pointers.delete(e.pointerId);
+    if(pointers.size<2)pinchStart=null;
+    if(pointers.size===0)svgEl.style.cursor='grab';
+  };
+  svgEl.addEventListener('pointerup',endPointer);
+  svgEl.addEventListener('pointercancel',endPointer);
+  svgEl.addEventListener('dblclick',()=>{cur={...orig};apply();});
+  svgEl.style.cursor='grab';
+  svgEl.style.touchAction='none';
+  return{
+    zoomIn:()=>{const r=svgEl.getBoundingClientRect();zoomAt(r.left+r.width/2,r.top+r.height/2,0.8)},
+    zoomOut:()=>{const r=svgEl.getBoundingClientRect();zoomAt(r.left+r.width/2,r.top+r.height/2,1.25)},
+    reset:()=>{cur={...orig};apply()}
+  };
+}
+
 function renderFlow(nodes,links){
   const svg=document.getElementById('flowSvg');
   const W=Math.max(svg.parentElement.clientWidth||900,700);
@@ -1243,13 +1311,26 @@ function renderFlow(nodes,links){
       document.body.appendChild(popup);
     }
     const clickedName=nodes.find(n=>n.id===nid)?.label||nid;
+    const btnStyle='width:30px;height:30px;border-radius:6px;border:1px solid var(--border,#3a332a);background:var(--bg2,#1e1b16);color:var(--text,#f2ece4);font-size:16px;line-height:1;cursor:pointer';
     popup.innerHTML=`<div style="background:var(--bg2,#1e1b16);border-radius:12px;padding:20px;max-width:780px;width:95%;max-height:85vh;overflow:auto;box-shadow:0 8px 32px rgba(0,0,0,.6);position:relative">
       <button onclick="document.getElementById('flowFocusPopup').style.display='none'" style="position:absolute;top:10px;right:14px;background:none;border:none;color:#aaa;font-size:22px;cursor:pointer">&times;</button>
       <div style="font-size:15px;font-weight:700;color:var(--text,#f2ece4);margin-bottom:4px">\u26d3 ${clickedName} \u2014 \uacf5\uae09\ub9dd \uc5f0\uacb0 \ubdf0</div>
-      <div style="font-size:11px;color:#8a7e6a;margin-bottom:12px">\ud074\ub9ad\ud55c \ub178\ub4dc\uc758 \uc804\uccb4 \uc5f0\uacb0 \uad00\uacc4\ub97c \ubcf4\uc5ec\uc90d\ub2c8\ub2e4. Farm \u2192 Brand \u2192 Chain</div>
-      <svg viewBox="0 0 ${FW} ${FH}" style="width:100%;height:auto;background:var(--bg3,#161310);border-radius:8px">${sh}</svg>
+      <div style="font-size:11px;color:#8a7e6a;margin-bottom:12px">\ud720/\ud540\uce58\ub85c \ud655\ub300\u00b7\ucd95\uc18c &middot; \ub4dc\ub798\uadf8\ub85c \uc774\ub3d9 &middot; \ub354\ube14\ud074\ub9ad\uc73c\ub85c \ucd08\uae30\ud654</div>
+      <div style="position:relative">
+        <div style="position:absolute;top:8px;right:8px;z-index:2;display:flex;flex-direction:column;gap:4px">
+          <button id="fzIn" title="\ud655\ub300" style="${btnStyle}">+</button>
+          <button id="fzOut" title="\ucd95\uc18c" style="${btnStyle}">\u2212</button>
+          <button id="fzReset" title="\ucd08\uae30\ud654" style="${btnStyle}">\u21ba</button>
+        </div>
+        <svg id="focusSvg" viewBox="0 0 ${FW} ${FH}" style="width:100%;height:60vh;max-height:520px;display:block;background:var(--bg3,#161310);border-radius:8px">${sh}</svg>
+      </div>
     </div>`;
     popup.style.display='flex';
+    const focusSvgEl=popup.querySelector('#focusSvg');
+    const pz=attachPanZoom(focusSvgEl);
+    popup.querySelector('#fzIn').addEventListener('click',pz.zoomIn);
+    popup.querySelector('#fzOut').addEventListener('click',pz.zoomOut);
+    popup.querySelector('#fzReset').addEventListener('click',pz.reset);
   }
 
   /* SVG-level event delegation — most reliable for SVG elements */
