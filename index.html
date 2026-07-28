@@ -336,7 +336,15 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg3);color:var(
   <div class="sec" id="sec-trace">
     <div class="card" style="margin-bottom:14px">
       <div class="card-title">원두 역추적: 메뉴 → 브랜드 → 소비국WH → Import Broker → 소비국Port → Logistics → 생산국Port → Export Broker → 생산국WH → 농장 → 생산국</div>
-      <div style="overflow-x:auto"><svg id="traceSvg"></svg></div>
+      <div style="position:relative">
+        <div style="position:absolute;top:8px;right:8px;z-index:2;display:flex;flex-direction:column;gap:4px">
+          <button id="traceZoomIn" title="확대" style="width:30px;height:30px;border-radius:6px;border:1px solid var(--border);background:var(--bg2);color:var(--text);font-size:16px;line-height:1;cursor:pointer">+</button>
+          <button id="traceZoomOut" title="축소" style="width:30px;height:30px;border-radius:6px;border:1px solid var(--border);background:var(--bg2);color:var(--text);font-size:16px;line-height:1;cursor:pointer">−</button>
+          <button id="traceZoomReset" title="초기화" style="width:30px;height:30px;border-radius:6px;border:1px solid var(--border);background:var(--bg2);color:var(--text);font-size:16px;line-height:1;cursor:pointer">↺</button>
+        </div>
+        <svg id="traceSvg"></svg>
+      </div>
+      <div style="font-size:10.5px;color:#8a7e6a;margin:6px 2px 0">휠/핀치로 확대·축소 &middot; 드래그로 이동 &middot; 더블클릭으로 초기화</div>
       <div id="traceInfo" style="margin-top:10px;padding:.7rem 1rem;background:var(--bg3);border-radius:var(--r);font-size:12.5px;color:var(--text2);min-height:44px;border:1px solid var(--border)">
         노드를 클릭하면 상세 정보가 표시됩니다.
       </div>
@@ -1378,7 +1386,7 @@ function renderTraceFlow(trace, data){
   const maxCount=Math.max(...arrs.map(a=>a.length));
   const ROW_H=26,PAD_TOP=58,PAD_BOT=10,NW=62,NH=22;
   const H=PAD_TOP+maxCount*ROW_H+PAD_BOT;
-  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.style.width='100%';svg.style.height='auto';svg.removeAttribute('width');svg.removeAttribute('height');
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.style.width='100%';svg.style.height='70vh';svg.style.maxHeight='640px';svg.style.display='block';svg.removeAttribute('width');svg.removeAttribute('height');
   svg.style.background='var(--bg3)';svg.style.borderRadius='8px';
   const colX=Array.from({length:COLS},(_,i)=>NW/2+8+(W-NW-16)/(COLS-1)*i);
   const TYPES=['menu','brand','cw','ib','cp','lp','pp','eb','pw','farm','country'];
@@ -1471,6 +1479,12 @@ function renderTraceFlow(trace, data){
       info.innerHTML=`<strong style="color:${CLR[ci]}">${HDRS[ci].replace('\n',' ')}</strong>: <strong style="color:var(--text)">${label}</strong>${up?' &nbsp;← '+up:''}${dn?' &nbsp;→ '+dn:''}`;
     });
   });
+  /* pan/zoom directly inside the diagram (not just page-level browser zoom) */
+  const tracePz=attachPanZoom(svg);
+  const tzIn=document.getElementById('traceZoomIn'),tzOut=document.getElementById('traceZoomOut'),tzReset=document.getElementById('traceZoomReset');
+  if(tzIn)tzIn.onclick=tracePz.zoomIn;
+  if(tzOut)tzOut.onclick=tracePz.zoomOut;
+  if(tzReset)tzReset.onclick=tracePz.reset;
 }
 
 function renderTrace(trace){
