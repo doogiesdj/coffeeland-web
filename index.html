@@ -45,6 +45,9 @@ body{font-family:var(--fb);background:var(--bg);color:var(--text);font-size:14px
 .card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:1.2rem 1.4rem;box-shadow:var(--shadow)}
 .card-title{font-size:11px;font-weight:500;color:var(--text3);letter-spacing:.06em;text-transform:uppercase;font-family:var(--fm);margin-bottom:1rem}
 .thc{transition:color .2s,opacity .2s,font-weight .2s}
+#traceCard:fullscreen,#traceCard:-webkit-full-screen{background:var(--bg);padding:24px;display:flex;flex-direction:column;overflow:auto}
+#traceCard:fullscreen #traceSvgWrap,#traceCard:-webkit-full-screen #traceSvgWrap{flex:1;min-height:0}
+#traceCard:fullscreen #traceSvg,#traceCard:-webkit-full-screen #traceSvg{height:100%!important;max-height:none!important}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
 #map{width:100%;height:480px;border-radius:var(--r);overflow:hidden;background:#e8e0d8}
 .map-legend{display:flex;gap:16px;margin-top:10px;flex-wrap:wrap}
@@ -335,17 +338,18 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg3);color:var(
   </div>
 
   <div class="sec" id="sec-trace">
-    <div class="card" style="margin-bottom:14px">
+    <div class="card" id="traceCard" style="margin-bottom:14px">
       <div class="card-title" id="traceTitle">원두 역추적: <span class="thc" data-type="menu">메뉴</span> → <span class="thc" data-type="brand">브랜드</span> → <span class="thc" data-type="cw">소비국WH</span> → <span class="thc" data-type="ib">Import Broker</span> → <span class="thc" data-type="cp">소비국Port</span> → <span class="thc" data-type="lp">Logistics</span> → <span class="thc" data-type="pp">생산국Port</span> → <span class="thc" data-type="eb">Export Broker</span> → <span class="thc" data-type="pw">생산국WH</span> → <span class="thc" data-type="farm">농장</span> → <span class="thc" data-type="country">생산국</span></div>
-      <div style="position:relative">
+      <div style="position:relative" id="traceSvgWrap">
         <div style="position:absolute;top:8px;right:8px;z-index:2;display:flex;flex-direction:column;gap:4px">
           <button id="traceZoomIn" title="확대" style="width:30px;height:30px;border-radius:6px;border:1px solid var(--border);background:var(--bg2);color:var(--text);font-size:16px;line-height:1;cursor:pointer">+</button>
           <button id="traceZoomOut" title="축소" style="width:30px;height:30px;border-radius:6px;border:1px solid var(--border);background:var(--bg2);color:var(--text);font-size:16px;line-height:1;cursor:pointer">−</button>
           <button id="traceZoomReset" title="초기화" style="width:30px;height:30px;border-radius:6px;border:1px solid var(--border);background:var(--bg2);color:var(--text);font-size:16px;line-height:1;cursor:pointer">↺</button>
+          <button id="traceFullscreen" title="전체화면" style="width:30px;height:30px;border-radius:6px;border:1px solid var(--border);background:var(--bg2);color:var(--text);font-size:15px;line-height:1;cursor:pointer">⛶</button>
         </div>
         <svg id="traceSvg"></svg>
       </div>
-      <div style="font-size:10.5px;color:#8a7e6a;margin:6px 2px 0">휠/핀치로 확대·축소 &middot; 드래그로 이동 &middot; 더블클릭으로 초기화</div>
+      <div style="font-size:10.5px;color:#8a7e6a;margin:6px 2px 0">휠/핀치로 확대·축소 &middot; 드래그로 이동 &middot; 더블클릭으로 초기화 &middot; ⛶ 전체화면</div>
       <div id="traceInfo" style="margin-top:10px;padding:.7rem 1rem;background:var(--bg3);border-radius:var(--r);font-size:12.5px;color:var(--text2);min-height:44px;border:1px solid var(--border)">
         노드를 클릭하면 연결 관계가 고정 표시됩니다. 고정된 상태에서 자유롭게 확대·이동해 경로를 따라가 보세요. 다시 클릭하거나 빈 곳을 클릭하면 해제됩니다.
       </div>
@@ -1531,6 +1535,24 @@ function renderTraceFlow(trace, data){
   if(tzIn)tzIn.onclick=tracePz.zoomIn;
   if(tzOut)tzOut.onclick=tracePz.zoomOut;
   if(tzReset)tzReset.onclick=tracePz.reset;
+  /* fullscreen toggle — pan/zoom, click-to-pin and title highlight all keep working
+     since fullscreen only resizes the same elements, it doesn't recreate them */
+  const traceCard=document.getElementById('traceCard');
+  const tzFull=document.getElementById('traceFullscreen');
+  if(tzFull&&traceCard){
+    const isFs=()=>document.fullscreenElement===traceCard||document.webkitFullscreenElement===traceCard;
+    tzFull.onclick=()=>{
+      if(isFs()){
+        (document.exitFullscreen||document.webkitExitFullscreen).call(document);
+      }else{
+        const req=traceCard.requestFullscreen||traceCard.webkitRequestFullscreen;
+        if(req)req.call(traceCard);
+      }
+    };
+    const syncFsBtn=()=>{tzFull.textContent=isFs()?'✕':'⛶';tzFull.title=isFs()?'전체화면 종료':'전체화면';};
+    document.addEventListener('fullscreenchange',syncFsBtn);
+    document.addEventListener('webkitfullscreenchange',syncFsBtn);
+  }
 }
 
 function renderTrace(trace){
