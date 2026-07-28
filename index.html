@@ -346,7 +346,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg3);color:var(
       </div>
       <div style="font-size:10.5px;color:#8a7e6a;margin:6px 2px 0">휠/핀치로 확대·축소 &middot; 드래그로 이동 &middot; 더블클릭으로 초기화</div>
       <div id="traceInfo" style="margin-top:10px;padding:.7rem 1rem;background:var(--bg3);border-radius:var(--r);font-size:12.5px;color:var(--text2);min-height:44px;border:1px solid var(--border)">
-        노드를 클릭하면 상세 정보가 표시됩니다.
+        노드를 클릭하면 연결 관계가 고정 표시됩니다. 고정된 상태에서 자유롭게 확대·이동해 경로를 따라가 보세요. 다시 클릭하거나 빈 곳을 클릭하면 해제됩니다.
       </div>
     </div>
     <div class="tw">
@@ -1457,27 +1457,48 @@ function renderTraceFlow(trace, data){
     lines.forEach((ln,li)=>{html+=`<text x="${colX[i]}" y="${19+li*16}" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="14" fill="${CLR[i]}" letter-spacing=".01em" font-weight="700">${ln}</text>`});
   });
   svg.innerHTML=html;
-  /* hover */
+  /* hover + click-to-pin: clicking a node freezes its highlight so the user can
+     pan/zoom around the diagram to trace connections without losing the selection */
   const allN=svg.querySelectorAll('.trace-node'),allL=svg.querySelectorAll('.trace-link');
+  let pinnedId=null;
+  function showHighlight(nid){
+    const conn=getConnected(nid);
+    allN.forEach(g2=>{const id2=g2.getAttribute('data-id');if(conn.nodes.has(id2)){g2.style.opacity='1';g2.querySelector('rect').style.strokeWidth='2';if(id2===nid)g2.querySelector('rect').style.filter='url(#tglow)'}else{g2.style.opacity='.1'}});
+    allL.forEach(p=>{const lk=p.getAttribute('data-source')+'|'+p.getAttribute('data-target');if(conn.links.has(lk)){const ci=+p.getAttribute('data-col');p.style.stroke=CLR[ci]+'cc';p.style.strokeWidth='2.5';p.style.opacity='1'}else{p.style.opacity='.03'}});
+  }
+  function clearHighlight(){
+    allN.forEach(g2=>{g2.style.opacity='1';g2.querySelector('rect').style.strokeWidth='1';g2.querySelector('rect').style.filter='none'});
+    allL.forEach(p=>{const ci=+p.getAttribute('data-col');p.style.stroke=CLR[ci]+'30';p.style.strokeWidth='1';p.style.opacity='1'});
+  }
+  function showInfo(nid){
+    const info=document.getElementById('traceInfo');
+    const ci=TYPES.indexOf(nodeType[nid]);
+    const up=[...(upstream[nid]||[])].map(id=>id.replace(/^[a-z]+_/,'').replace(/Farm_/,'').replace(/_/g,' ')).join(', ');
+    const dn=[...(downstream[nid]||[])].map(id=>id.replace(/^[a-z]+_/,'').replace(/Farm_/,'').replace(/_/g,' ')).join(', ');
+    const label=nid.replace(/^[a-z]+_/,'').replace(/Farm_/,'').replace(/_/g,' ');
+    info.innerHTML=`<strong style="color:${CLR[ci]}">${HDRS[ci].replace('\n',' ')}</strong>: <strong style="color:var(--text)">${label}</strong>${up?' &nbsp;← '+up:''}${dn?' &nbsp;→ '+dn:''} &nbsp;<span style="color:#8a7e6a">(선택 고정됨 · 다시 클릭하거나 빈 곳을 클릭하면 해제)</span>`;
+  }
+  function resetInfo(){
+    document.getElementById('traceInfo').innerHTML='노드를 클릭하면 연결 관계가 고정 표시됩니다. 고정된 상태에서 자유롭게 확대·이동해 경로를 따라가 보세요. 다시 클릭하거나 빈 곳을 클릭하면 해제됩니다.';
+  }
+  /* distinguish a real click from a drag-to-pan release so panning never unpins the selection */
+  let downPt=null,dragMoved=false;
+  svg.addEventListener('pointerdown',e=>{downPt={x:e.clientX,y:e.clientY};dragMoved=false;});
+  svg.addEventListener('pointermove',e=>{if(downPt&&Math.hypot(e.clientX-downPt.x,e.clientY-downPt.y)>4)dragMoved=true;});
   allN.forEach(g=>{
     const nid=g.getAttribute('data-id');
-    g.addEventListener('mouseenter',()=>{
-      const conn=getConnected(nid);
-      allN.forEach(g2=>{const id2=g2.getAttribute('data-id');if(conn.nodes.has(id2)){g2.style.opacity='1';g2.querySelector('rect').style.strokeWidth='2';if(id2===nid)g2.querySelector('rect').style.filter='url(#tglow)'}else{g2.style.opacity='.1'}});
-      allL.forEach(p=>{const lk=p.getAttribute('data-source')+'|'+p.getAttribute('data-target');if(conn.links.has(lk)){const ci=+p.getAttribute('data-col');p.style.stroke=CLR[ci]+'cc';p.style.strokeWidth='2.5';p.style.opacity='1'}else{p.style.opacity='.03'}});
+    g.addEventListener('mouseenter',()=>{if(!pinnedId)showHighlight(nid)});
+    g.addEventListener('mouseleave',()=>{if(!pinnedId)clearHighlight()});
+    g.addEventListener('click',e=>{
+      if(dragMoved)return;
+      e.stopPropagation();
+      if(pinnedId===nid){pinnedId=null;clearHighlight();resetInfo();}
+      else{pinnedId=nid;showHighlight(nid);showInfo(nid);}
     });
-    g.addEventListener('mouseleave',()=>{
-      allN.forEach(g2=>{g2.style.opacity='1';g2.querySelector('rect').style.strokeWidth='1';g2.querySelector('rect').style.filter='none'});
-      allL.forEach(p=>{const ci=+p.getAttribute('data-col');p.style.stroke=CLR[ci]+'30';p.style.strokeWidth='1';p.style.opacity='1'});
-    });
-    g.addEventListener('click',()=>{
-      const info=document.getElementById('traceInfo');
-      const ci=TYPES.indexOf(nodeType[nid]);
-      const up=[...(upstream[nid]||[])].map(id=>id.replace(/^[a-z]+_/,'').replace(/Farm_/,'').replace(/_/g,' ')).join(', ');
-      const dn=[...(downstream[nid]||[])].map(id=>id.replace(/^[a-z]+_/,'').replace(/Farm_/,'').replace(/_/g,' ')).join(', ');
-      const label=nid.replace(/^[a-z]+_/,'').replace(/Farm_/,'').replace(/_/g,' ');
-      info.innerHTML=`<strong style="color:${CLR[ci]}">${HDRS[ci].replace('\n',' ')}</strong>: <strong style="color:var(--text)">${label}</strong>${up?' &nbsp;← '+up:''}${dn?' &nbsp;→ '+dn:''}`;
-    });
+  });
+  svg.addEventListener('click',e=>{
+    if(dragMoved)return;
+    if(e.target===svg&&pinnedId){pinnedId=null;clearHighlight();resetInfo();}
   });
   /* pan/zoom directly inside the diagram (not just page-level browser zoom) */
   const tracePz=attachPanZoom(svg);
