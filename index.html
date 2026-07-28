@@ -1489,16 +1489,22 @@ function renderTraceFlow(trace, data){
     const nid=g.getAttribute('data-id');
     g.addEventListener('mouseenter',()=>{if(!pinnedId)showHighlight(nid)});
     g.addEventListener('mouseleave',()=>{if(!pinnedId)clearHighlight()});
-    g.addEventListener('click',e=>{
-      if(dragMoved)return;
-      e.stopPropagation();
-      if(pinnedId===nid){pinnedId=null;clearHighlight();resetInfo();}
-      else{pinnedId=nid;showHighlight(nid);showInfo(nid);}
-    });
   });
+  /* Click handling lives on the svg itself (not per-node) because attachPanZoom calls
+     setPointerCapture on pointerdown, which redirects the compatibility 'click' event's
+     target to the svg element — a per-node click listener would never fire once panning
+     is wired up. Instead resolve the clicked node from screen coordinates. */
   svg.addEventListener('click',e=>{
     if(dragMoved)return;
-    if(e.target===svg&&pinnedId){pinnedId=null;clearHighlight();resetInfo();}
+    const el=document.elementFromPoint(e.clientX,e.clientY);
+    const hitG=el&&el.closest?el.closest('.trace-node'):null;
+    const nid=hitG?hitG.getAttribute('data-id'):null;
+    if(nid){
+      if(pinnedId===nid){pinnedId=null;clearHighlight();resetInfo();}
+      else{pinnedId=nid;showHighlight(nid);showInfo(nid);}
+    }else if(pinnedId){
+      pinnedId=null;clearHighlight();resetInfo();
+    }
   });
   /* pan/zoom directly inside the diagram (not just page-level browser zoom) */
   const tracePz=attachPanZoom(svg);
